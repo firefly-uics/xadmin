@@ -13,7 +13,6 @@ ACTION_NAME = {
     'view': _('Can view %s'),
 }
 
-
 # @xadmin.sites.register(FactorBuy)
 # class FactorBuyAdmin(object):
 #     list_display = ("name",)

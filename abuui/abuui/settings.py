@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'crispy_forms',
     'reversion',
 
-    'his'
+    'his',
+    'factorbuy'
 ]
 
 MIDDLEWARE = [

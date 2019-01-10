@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'reversion',
 
     'his',
-    'factorbuy'
+    'runloop',
 ]
 
 MIDDLEWARE = [

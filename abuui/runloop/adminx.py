@@ -1,15 +1,9 @@
 from __future__ import absolute_import
 
-from django.forms import ModelMultipleChoiceField
+from django.utils.translation import ugettext as _
 
 import xadmin
-from xadmin import views
-from .models import FactorBuy, FactorBuyBreakXd
-from xadmin.layout import Main, TabHolder, Tab, Fieldset, Row, Col, AppendedText, Side
-from xadmin.plugins.inline import Inline
-from xadmin.plugins.batch import BatchChangeAction
-from django.utils.translation import ugettext as _
-from django.utils.encoding import python_2_unicode_compatible
+from .models import RunLoopGroup, FactorBuy, FactorBuyBreakXd
 
 ACTION_NAME = {
     'add': _('Can add %s'),
@@ -20,9 +14,21 @@ ACTION_NAME = {
 }
 
 
+# @xadmin.sites.register(FactorBuy)
+# class FactorBuyAdmin(object):
+#     list_display = ("name",)
+#     list_display_links = ("name",)
+#
+#     list_quick_filter = [{"field": "name", "limit": 10}]
+#
+#     search_fields = ["name"]
+#
+#     reversion_enable = True
+
+
 @xadmin.sites.register(FactorBuyBreakXd)
 class FactorBuyBreakXdAdmin(object):
-    list_display = ("name", "xd", "create_time")
+    list_display = ("name", "xd")
 
     list_display_links = ("name",)
 
@@ -37,6 +43,20 @@ class FactorBuyBreakXdAdmin(object):
     search_fields = ["name"]
 
     reversion_enable = True
+
+
+@xadmin.sites.register(RunLoopGroup)
+class RunLoopGroupAdmin(object):
+    list_display = ("name", "description")
+    list_display_links = ("name",)
+
+    list_quick_filter = [{"field": "name", "limit": 10}]
+
+    search_fields = ["name"]
+
+    reversion_enable = True
+
+    style_fields = {"factor_buys": "checkbox-inline"}
 
 # xadmin.sites.site.register(HostGroup, HostGroupAdmin)
 # xadmin.sites.site.register(MaintainLog, MaintainLogAdmin)

@@ -33,11 +33,11 @@ class FactorBuyBreakXd(FactorBuy):
 
 @python_2_unicode_compatible
 class RunLoopGroup(models.Model):
-    name = models.TextField(max_length=64)
-    description = models.TextField()
+    name = models.CharField(verbose_name=u"名称", max_length=64)
+    description = models.TextField(verbose_name=u"说明")
     factor_buys = models.ManyToManyField(
-        FactorBuy, verbose_name=u'FactorBuys', blank=True, related_name='factor_buy_groups')
+        FactorBuy, verbose_name=u'买策略组合', blank=True, related_name='factor_buy_groups')
 
     class Meta:
-        verbose_name = u"RunLoopGroup"
+        verbose_name = u"回测"
         verbose_name_plural = verbose_name

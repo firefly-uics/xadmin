@@ -42,7 +42,9 @@ INSTALLED_APPS = [
     'crispy_forms',
     'reversion',
 
+    'base',
     'runloop',
+
 ]
 
 MIDDLEWARE = [

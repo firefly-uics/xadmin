@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from django.utils.translation import ugettext as _
 
 import xadmin
+from .xadmin_action import MyAction
 from .models import RunLoopGroup, FactorBuy, FactorBuyBreakXd, FactorSellBreakXd
 
 ACTION_NAME = {
@@ -27,7 +28,7 @@ ACTION_NAME = {
 
 @xadmin.sites.register(FactorBuyBreakXd)
 class FactorBuyBreakXdAdmin(object):
-    list_display = ("name", "xd")
+    list_display = ("name", "xd", "class_name")
 
     list_display_links = ("name",)
 
@@ -45,7 +46,7 @@ class FactorBuyBreakXdAdmin(object):
 
 @xadmin.sites.register(FactorSellBreakXd)
 class FactorSellBreakXdAdmin(object):
-    list_display = ("name", "xd")
+    list_display = ("name", "xd", "class_name")
 
     list_display_links = ("name",)
 
@@ -63,8 +64,10 @@ class FactorSellBreakXdAdmin(object):
 
 @xadmin.sites.register(RunLoopGroup)
 class RunLoopGroupAdmin(object):
-    list_display = ("name", "description")
+    list_display = ("name", "status", "description")
     list_display_links = ("name",)
+    # readony_fields = ("status", )
+    exclude = ['status']
 
     list_quick_filter = [{"field": "name", "limit": 10}]
 
@@ -73,6 +76,8 @@ class RunLoopGroupAdmin(object):
     reversion_enable = True
 
     style_fields = {"factor_buys": "checkbox-inline","factor_sells": "checkbox-inline"}
+
+    actions = [MyAction, ]
 
 # xadmin.sites.site.register(HostGroup, HostGroupAdmin)
 # xadmin.sites.site.register(MaintainLog, MaintainLogAdmin)

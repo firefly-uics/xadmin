@@ -97,6 +97,8 @@ class RunLoopGroup(models.Model):
     description = models.TextField(verbose_name=u"说明")
     status = models.CharField(verbose_name=u"状态", max_length=64, blank=True, default="新建")
 
+    read_cash = models.IntegerField(verbose_name=u"初始化资金")
+
     factor_buys = models.ManyToManyField(
         FactorBuy, verbose_name=u'买策略组合', blank=False, related_name='factor_buy_groups')
     factor_sells = models.ManyToManyField(

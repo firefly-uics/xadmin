@@ -9,12 +9,12 @@ from base.models import Stock
 AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 FACTOR_BUY_CLASSES = (
-    ('AbuFactorBuyBreak', u"海龟买"),
+    ('FactorBuyBreakXd', u"海龟买"),
     ('AbuDoubleMaBuy', u"双均线买"),
 )
 
 FACTOR_SELL_CLASSES = (
-    ('AbuFactorSellBreak', u"海龟卖"),
+    ('FactorSellBreakXd', u"海龟卖"),
     ('AbuDoubleMaSell', u"双均线卖"),
 )
 
@@ -29,7 +29,10 @@ FACTOR_SELL_CLASSES = (
 @python_2_unicode_compatible
 class FactorBuy(models.Model):
     name = models.CharField(max_length=64, verbose_name=u'名称')
-    class_name = models.CharField(max_length=32, choices=FACTOR_BUY_CLASSES, verbose_name=u'策略', editable=False)
+    class_name = models.CharField(max_length=256, choices=FACTOR_BUY_CLASSES, verbose_name=u'策略', editable=False)
+
+    # def to_factor(self):
+    #     return eval(self.class_name)
 
     class Meta:
         verbose_name = u"买策略"
@@ -43,7 +46,7 @@ class FactorBuy(models.Model):
 @python_2_unicode_compatible
 class FactorSell(models.Model):
     name = models.CharField(max_length=64, verbose_name=u'名称')
-    class_name = models.CharField(max_length=32, choices=FACTOR_SELL_CLASSES, verbose_name=u'策略', editable=False)
+    class_name = models.CharField(max_length=256, choices=FACTOR_SELL_CLASSES, verbose_name=u'策略', editable=False)
 
     class Meta:
         verbose_name = u"卖策略"
@@ -65,7 +68,7 @@ class FactorBuyBreakXd(FactorBuy):
         verbose_name_plural = verbose_name
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        self.class_name = "AbuFactorBuyBreak"
+        self.class_name = "{'xd': %s, 'class': AbuFactorBuyBreak}" % self.xd
         super().save(force_insert, force_update, using, update_fields)
 
     def __str__(self):

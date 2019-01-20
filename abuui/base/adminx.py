@@ -6,7 +6,7 @@ from .models import Stock
 
 @xadmin.sites.register(Stock)
 class StockAdmin(object):
-    list_display = ("co_name", )
+    list_display = ("co_name", "symbol", "market")
 
     list_display_links = ("co_name",)
 

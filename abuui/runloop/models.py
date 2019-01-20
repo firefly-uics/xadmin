@@ -87,7 +87,7 @@ class FactorSellBreakXd(FactorSell):
         verbose_name_plural = verbose_name
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        self.class_name = "AbuFactorSellBreak"
+        self.class_name = "{'xd': %s, 'class': AbuFactorSellBreak}" % self.xd
         super().save(force_insert, force_update, using, update_fields)
 
     def __str__(self):

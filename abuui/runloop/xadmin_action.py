@@ -1,8 +1,11 @@
 from django.http import HttpResponse
+
+from abupy.CoreBu import ABuEnv
+
 from xadmin.plugins.actions import BaseActionView
 from abupy import AbuFactorBuyBreak, AbuBenchmark, AbuCapital, AbuKLManager, AbuPickTimeWorker, ABuTradeProxy, \
     ABuPickTimeExecute, ABuTradeExecute, AbuMetricsBase, AbuFactorSellBreak, AbuFactorAtrNStop, AbuFactorCloseAtrNStop, \
-    AbuFactorPreAtrNStop
+    AbuFactorPreAtrNStop,EMarketTargetType
 import matplotlib.pyplot as plt
 
 
@@ -11,6 +14,9 @@ class MyAction(BaseActionView):
     action_name = "change_sss"  #: 相当于这个 Action 的唯一标示, 尽量用比较针对性的名字
     description = u'回测 %(verbose_name_plural)s'  #: 描述, 出现在 Action 菜单中, 可以使用 ``%(verbose_name_plural)s`` 代替 Model 的名字.
     model_perm = 'change'
+
+    ABuEnv.g_market_target = EMarketTargetType.E_MARKET_TARGET_CN
+
 
     def do_action(self, queryset):
         for obj in queryset:
@@ -35,7 +41,7 @@ class MyAction(BaseActionView):
             # buy_factors = [{'xd': 60, 'class': AbuFactorBuyBreak},
             #                {'xd': 42, 'class': AbuFactorBuyBreak}]
 
-            choice_symbols = ['usTSLA', 'usNOAH']
+            choice_symbols = ['002396']
             capital = AbuCapital(1000000, benchmark)
             orders_pd, action_pd, all_fit_symbols_cnt = ABuPickTimeExecute.do_symbols_with_same_factors(choice_symbols,
                                                                                                         benchmark,

@@ -28,6 +28,8 @@ cd demo_app
 ./manage.py migrate
 // 启动服务
 ./manage.py runserver
+// 初始化数据
+./manage.py loaddata initial_data.json
 ```
 
 ## 配置

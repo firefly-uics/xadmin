@@ -2,18 +2,27 @@ from django.http import HttpResponse
 
 from abupy.CoreBu import ABuEnv
 
-
 import abupy
 from abupy import EMarketSourceType, EDataCacheType, abu
 
 from abupy import EMarketDataFetchMode
+
+from abuui import settings
+from .models import RunLoopGroup
 from xadmin.plugins.actions import BaseActionView
 from abupy import AbuFactorBuyBreak, AbuBenchmark, AbuCapital, AbuKLManager, AbuPickTimeWorker, ABuTradeProxy, \
     ABuPickTimeExecute, ABuTradeExecute, AbuMetricsBase, AbuFactorSellBreak, AbuFactorAtrNStop, AbuFactorCloseAtrNStop, \
-    AbuFactorPreAtrNStop,EMarketTargetType
+    AbuFactorPreAtrNStop, EMarketTargetType
 
 from django.db import connection
 import matplotlib.pyplot as plt
+
+from django.conf import settings
+from django.core import signals
+from django.dispatch import dispatcher
+import sqlalchemy
+from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.engine.url import URL
 
 
 class MyAction(BaseActionView):
@@ -23,6 +32,7 @@ class MyAction(BaseActionView):
     model_perm = 'change'
 
     abupy.env.disable_example_env_ipython()
+
     #
     # abupy.env.disable_example_env_ipython()
     # abupy.env.g_market_source = EMarketSourceType.E_MARKET_SOURCE_tx
@@ -53,7 +63,7 @@ class MyAction(BaseActionView):
             buy_factors = [{'xd': 60, 'class': AbuFactorBuyBreak},
                            {'xd': 42, 'class': AbuFactorBuyBreak}]
 
-            choice_symbols = ['002396', '002230']
+            choice_symbols = ['002396']  # , '002230']
             capital = AbuCapital(1000000, benchmark)
             orders_pd, action_pd, all_fit_symbols_cnt = ABuPickTimeExecute.do_symbols_with_same_factors(choice_symbols,
                                                                                                         benchmark,
@@ -61,7 +71,6 @@ class MyAction(BaseActionView):
                                                                                                         sell_factors,
                                                                                                         capital,
                                                                                                         show=False)
-
 
             # query = str(ModelToRetrive.objects.all().query)
             # df = pandas.read_sql_query(query, connection)
@@ -74,6 +83,35 @@ class MyAction(BaseActionView):
                  'profit']))
             print('action_pd[:10]:\n', action_pd[:10])
 
+            def create_engine():
+                user = settings.DATABASES['default']['USER']
+                password = settings.DATABASES['default']['PASSWORD']
+                database_name = settings.DATABASES['default']['NAME']
+                host = settings.DATABASES['default']['HOST']
+                port = settings.DATABASES['default']['PORT']
+
+                # url = URL(drivername=settings.DATABASE_ENGINE,
+                #           database=settings.DATABASE_NAME,
+                #           username=settings.DATABASE_USER,
+                #           password=settings.DATABASE_PASSWORD,
+                #           host=settings.DATABASE_HOST,
+                #           port=settings.DATABASE_PORT or None,
+                #           query=getattr(settings, 'DATABASE_OPTIONS', {})
+                #           )
+
+                database_url = 'mysql://{user}:{password}@{host}:{port}/{database_name}'.format(
+                    user=user,
+                    host=host,
+                    port=port,
+                    password=password,
+                    database_name=database_name,
+                )
+
+                engine = sqlalchemy.create_engine(database_url, echo=False)
+                return engine
+
+            orders_pd.to_sql('orders_pd', create_engine(), if_exists='append')
+            orders_pd.to_sql('action_pd', create_engine(), if_exists='append')
 
             str = ''
 

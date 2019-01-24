@@ -30,10 +30,15 @@ class MyAction(BaseActionView):
             stocks = obj.stocks.all()
 
             buy_factors = []
+            sell_factors = []
             choice_symbols = []
+
 
             for factor_buy in obj.factor_buys.all():
                 buy_factors.append(eval(factor_buy.get_class_name_display()))
+
+            for factor_sell in obj.factor_sells.all():
+                sell_factors.append(eval(factor_sell.get_class_name_display()))
 
             for stock in stocks:
                 choice_symbols.append(stock.symbol)
@@ -42,11 +47,11 @@ class MyAction(BaseActionView):
                 8.1.4 对多支股票进行择时
                 :return:
             """
-            sell_factor1 = eval("{'xd': 120, 'class': AbuFactorSellBreak}")
-            sell_factor2 = {'stop_loss_n': 0.5, 'stop_win_n': 3.0, 'class': AbuFactorAtrNStop}
-            sell_factor3 = {'class': AbuFactorPreAtrNStop, 'pre_atr_n': 1.0}
-            sell_factor4 = {'class': AbuFactorCloseAtrNStop, 'close_atr_n': 1.5}
-            sell_factors = [sell_factor1, sell_factor2, sell_factor3, sell_factor4]
+            # sell_factor1 = eval("{'xd': 120, 'class': AbuFactorSellBreak}")
+            # sell_factor2 = {'stop_loss_n': 0.5, 'stop_win_n': 3.0, 'class': AbuFactorAtrNStop}
+            # sell_factor3 = {'class': AbuFactorPreAtrNStop, 'pre_atr_n': 1.0}
+            # sell_factor4 = {'class': AbuFactorCloseAtrNStop, 'close_atr_n': 1.5}
+            # sell_factors = [sell_factor1, sell_factor2, sell_factor3, sell_factor4]
             benchmark = AbuBenchmark()
             # buy_factors = [{'xd': 60, 'class': AbuFactorBuyBreak},
             #                {'xd': 42, 'class': AbuFactorBuyBreak}]

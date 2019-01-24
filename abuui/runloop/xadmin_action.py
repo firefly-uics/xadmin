@@ -7,8 +7,11 @@ from abupy import EMarketSourceType, EDataCacheType, abu
 
 from abupy import EMarketDataFetchMode
 
+from django.db import connection
+
 from abuui import settings
-from .models import RunLoopGroup
+from base.models import Stock
+from .models import RunLoopGroup, Orders
 from xadmin.plugins.actions import BaseActionView
 from abupy import AbuFactorBuyBreak, AbuBenchmark, AbuCapital, AbuKLManager, AbuPickTimeWorker, ABuTradeProxy, \
     ABuPickTimeExecute, ABuTradeExecute, AbuMetricsBase, AbuFactorSellBreak, AbuFactorAtrNStop, AbuFactorCloseAtrNStop, \
@@ -23,6 +26,8 @@ from django.dispatch import dispatcher
 import sqlalchemy
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.engine.url import URL
+import pandas as pd
+import io
 
 
 class MyAction(BaseActionView):
@@ -33,12 +38,24 @@ class MyAction(BaseActionView):
 
     abupy.env.disable_example_env_ipython()
 
-    #
-    # abupy.env.disable_example_env_ipython()
-    # abupy.env.g_market_source = EMarketSourceType.E_MARKET_SOURCE_tx
-    # abupy.env.g_data_cache_type = EDataCacheType.E_DATA_CACHE_CSV
-    # # 首选这里预下载市场中所有股票的6年数据(做5年回测，需要预先下载6年数据)
-    # abu.run_kl_update(start='2018-01-01', end='2018-12-30', market=EMarketTargetType.E_MARKET_TARGET_CN)
+    def create_engine(self):
+        user = settings.DATABASES['default']['USER']
+        password = settings.DATABASES['default']['PASSWORD']
+        database_name = settings.DATABASES['default']['NAME']
+        host = settings.DATABASES['default']['HOST']
+        port = settings.DATABASES['default']['PORT']
+
+        database_url = 'mysql+mysqldb://{user}:{password}@{host}:{port}/{database_name}?charset=utf8'.format(
+            user=user,
+            host=host,
+            port=port,
+            password=password,
+            database_name=database_name,
+        )
+
+        engine = sqlalchemy.create_engine(database_url)
+
+        return engine
 
     def do_action(self, queryset):
         for obj in queryset:
@@ -83,35 +100,27 @@ class MyAction(BaseActionView):
                  'profit']))
             print('action_pd[:10]:\n', action_pd[:10])
 
-            def create_engine():
-                user = settings.DATABASES['default']['USER']
-                password = settings.DATABASES['default']['PASSWORD']
-                database_name = settings.DATABASES['default']['NAME']
-                host = settings.DATABASES['default']['HOST']
-                port = settings.DATABASES['default']['PORT']
+            stock = Stock.objects.filter(symbol='002396')
 
-                # url = URL(drivername=settings.DATABASE_ENGINE,
-                #           database=settings.DATABASE_NAME,
-                #           username=settings.DATABASE_USER,
-                #           password=settings.DATABASE_PASSWORD,
-                #           host=settings.DATABASE_HOST,
-                #           port=settings.DATABASE_PORT or None,
-                #           query=getattr(settings, 'DATABASE_OPTIONS', {})
-                #           )
+            orders_pd['run_loop_group_id'] = obj.id
 
-                database_url = 'mysql://{user}:{password}@{host}:{port}/{database_name}'.format(
-                    user=user,
-                    host=host,
-                    port=port,
-                    password=password,
-                    database_name=database_name,
-                )
+            print('orders_pd[:10]:\n', orders_pd[:10].filter(
+                ['symbol', 'buy_price', 'buy_cnt', 'buy_factor', 'buy_pos', 'sell_date', 'sell_type_extra', 'sell_type',
+                 'run_loop_group_id']))
+            orders_pd.loc[orders_pd['symbol'] == 'sz002396', 'stock_id'] = stock[0].id
 
-                engine = sqlalchemy.create_engine(database_url, echo=False)
-                return engine
+            orders = Orders.objects.filter(run_loop_group_id=obj.id)
+            if len(orders) > 0:
+                orders.delete()
 
-            orders_pd.to_sql('orders_pd', create_engine(), if_exists='append')
-            orders_pd.to_sql('action_pd', create_engine(), if_exists='append')
+            for index, row in orders_pd.iterrows():
+                dictObject = row.to_dict()
+                Orders.objects.create(**dictObject)
+
+            # orders_pd[:len(orders_pd)].to_sql('runloop_orders', self.create_engine(), if_exists='append', index=False, chunksize=2000)
+
+            # pd.io.sql.to_sql(orders_pd, 'runloop_orders', self.create_engine(), if_exists='append', index=False)
+            # orders_pd.to_sql('runloop_runloopgroup_action_pd', self.create_engine(), if_exists='append')
 
             str = ''
 

@@ -4,7 +4,7 @@ from django.utils.translation import ugettext as _
 
 import xadmin
 from .xadmin_action import MyAction
-from .models import RunLoopGroup, FactorBuy, FactorBuyBreakXd, FactorSellBreakXd
+from .models import RunLoopGroup, FactorBuy, FactorBuyBreakXd, FactorSellBreakXd, Orders
 
 ACTION_NAME = {
     'add': _('Can add %s'),
@@ -78,6 +78,19 @@ class RunLoopGroupAdmin(object):
     style_fields = {"factor_buys": "checkbox-inline","factor_sells": "checkbox-inline"}
 
     actions = [MyAction, ]
+
+@xadmin.sites.register(Orders)
+class OrdersAdmin(object):
+    list_display = ("symbol", )
+    list_display_links = ("symbol",)
+    # readony_fields = ("status", )
+    # exclude = ['status']
+
+    list_quick_filter = [{"field": "symbol", "limit": 10}]
+
+    search_fields = ["symbol"]
+
+    reversion_enable = True
 
 # xadmin.sites.site.register(HostGroup, HostGroupAdmin)
 # xadmin.sites.site.register(MaintainLog, MaintainLogAdmin)

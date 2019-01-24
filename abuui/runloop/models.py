@@ -115,3 +115,40 @@ class RunLoopGroup(models.Model):
 
     def __str__(self):
         return '回测名称: %s' % (self.name,)
+
+@python_2_unicode_compatible
+class Orders(models.Model):
+    buy_date = models.CharField(verbose_name=u"买入日期", max_length=64)
+    buy_price = models.CharField(verbose_name=u"买入价格", max_length=64)
+    buy_cnt = models.CharField(verbose_name=u"买入数量", max_length=64)
+    buy_factor = models.CharField(verbose_name=u"买入策略", max_length=64)
+    symbol = models.CharField(verbose_name=u"买入策略", max_length=64)
+    buy_pos = models.CharField(verbose_name=u"买入滑dian", max_length=64)
+    buy_type_str = models.CharField(verbose_name=u"买入类型", max_length=64)
+    expect_direction = models.CharField(verbose_name=u"预期方向", max_length=64)
+    sell_type_extra = models.CharField(verbose_name=u"卖出策略", max_length=64)
+    sell_date = models.CharField(verbose_name=u"卖出日期", max_length=64)
+    sell_price = models.CharField(verbose_name=u"卖出价格", max_length=64)
+    sell_type = models.CharField(verbose_name=u"卖出类型", max_length=64)
+    ml_features = models.CharField(verbose_name=u"MLI特征", max_length=64, blank=True, null=True)
+    key = models.CharField(verbose_name=u"关键字", max_length=64)
+    profit = models.CharField(verbose_name=u"盈利", max_length=64)
+    result = models.CharField(verbose_name=u"结果", max_length=64)
+    profit_cg = models.CharField(verbose_name=u"盈利比", max_length=64)
+    profit_cg_hunder = models.CharField(verbose_name=u"盈利率", max_length=64)
+    keep_days = models.CharField(verbose_name=u"持股天数", max_length=64)
+
+    stock = models.ForeignKey(Stock, null=True, blank=True, on_delete=models.SET_NULL)
+    run_loop_group = models.ForeignKey(RunLoopGroup, null=True, blank=True, on_delete=models.SET_NULL)
+
+    # def __init__(self,**kwargs):
+    #     self.__dict__.update(kwargs)
+
+    class Meta:
+        verbose_name = u"回测订单"
+        verbose_name_plural = verbose_name
+        # db_table = 'mytable'
+        # managed = False＃如果表已经存在
+
+    def __str__(self):
+        return '回测订单: %s' % (self.symbol,)

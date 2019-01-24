@@ -1,19 +1,14 @@
+import os
+import threading
+
 import abupy
-
-from django.db import connection
-
-from abuui import settings
+from abupy import AbuFactorBuyBreak, AbuBenchmark, AbuCapital, ABuPickTimeExecute, AbuMetricsBase, AbuFactorAtrNStop, \
+    AbuFactorCloseAtrNStop, \
+    AbuFactorPreAtrNStop, AbuFactorSellBreak
 from base.models import Stock
-from .models import Orders
+
 from xadmin.plugins.actions import BaseActionView
-from abupy import AbuFactorBuyBreak, AbuBenchmark, AbuCapital, AbuPickTimeWorker, ABuPickTimeExecute, ABuTradeExecute, AbuMetricsBase, AbuFactorSellBreak, AbuFactorAtrNStop, AbuFactorCloseAtrNStop, \
-    AbuFactorPreAtrNStop
-
-from django.db import connection
-
-from django.conf import settings
-import sqlalchemy
-from sqlalchemy.engine.url import URL
+from .models import Orders
 
 
 class MyAction(BaseActionView):
@@ -24,15 +19,24 @@ class MyAction(BaseActionView):
 
     abupy.env.disable_example_env_ipython()
 
-    def do_action(self, queryset):
-        for obj in queryset:
-            obj.status = 'run...'
-            obj.save()
+    lock = threading.Lock()
+
+    def booth(self, obj):
+        self.lock.acquire()
+
+        if obj:
+            print('Thread_id', obj)
+
+            stocks = obj.stocks.all()
 
             buy_factors = []
+            choice_symbols = []
 
             for factor_buy in obj.factor_buys.all():
                 buy_factors.append(eval(factor_buy.get_class_name_display()))
+
+            for stock in stocks:
+                choice_symbols.append(stock.symbol)
 
             """
                 8.1.4 对多支股票进行择时
@@ -44,11 +48,10 @@ class MyAction(BaseActionView):
             sell_factor4 = {'class': AbuFactorCloseAtrNStop, 'close_atr_n': 1.5}
             sell_factors = [sell_factor1, sell_factor2, sell_factor3, sell_factor4]
             benchmark = AbuBenchmark()
-            buy_factors = [{'xd': 60, 'class': AbuFactorBuyBreak},
-                           {'xd': 42, 'class': AbuFactorBuyBreak}]
+            # buy_factors = [{'xd': 60, 'class': AbuFactorBuyBreak},
+            #                {'xd': 42, 'class': AbuFactorBuyBreak}]
 
-            choice_symbols = ['002396']  # , '002230']
-            capital = AbuCapital(1000000, benchmark)
+            capital = AbuCapital(obj.read_cash, benchmark)
             orders_pd, action_pd, all_fit_symbols_cnt = ABuPickTimeExecute.do_symbols_with_same_factors(choice_symbols,
                                                                                                         benchmark,
                                                                                                         buy_factors,
@@ -59,21 +62,19 @@ class MyAction(BaseActionView):
             metrics = AbuMetricsBase(orders_pd, action_pd, capital, benchmark)
             metrics.fit_metrics()
 
-
-            for symbol in choice_symbols:
-                stock = Stock.objects.filter(symbol=symbol)
-                orders_pd.loc[orders_pd['symbol'] == ('sz%s' % symbol), 'stock_id'] = stock[0].id
+            for stock in stocks:
+                # stock = Stock.objects.filter(symbol=s.symbol)
+                print(('%s%s' % (stock.market.lower(), stock.symbol)))
+                orders_pd.loc[
+                    orders_pd['symbol'] == ('%s%s' % (stock.market.lower(), stock.symbol)), 'stock_id'] = stock.id
 
             orders_pd['run_loop_group_id'] = obj.id
 
-            orders = Orders.objects.filter(run_loop_group_id=obj.id)
-            if len(orders) > 0:
-                orders.delete()
+
 
             for index, row in orders_pd.iterrows():
                 dictObject = row.to_dict()
                 Orders.objects.create(**dictObject)
-
 
             str = ''
 
@@ -84,4 +85,23 @@ class MyAction(BaseActionView):
             obj.status = 'done'
             obj.description = str
             obj.save()
+        else:
+            print("Thread_id", obj, "No more")
+
+        self.lock.release()
+
+    def do_action(self, queryset):
+        for obj in queryset:
+
+            obj.status = 'run...'
+            obj.description = 'run...'
+            obj.save()
+
+            orders = Orders.objects.filter(run_loop_group_id=obj.id)
+            if len(orders) > 0:
+                orders.delete()
+
+            new_thread = threading.Thread(target=self.booth, args=(obj,))
+            new_thread.start()
+
         # return HttpResponse('{"status": "success", "msg": "error"}', content_type='application/json')

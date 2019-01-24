@@ -122,7 +122,7 @@ class Orders(models.Model):
     buy_price = models.CharField(verbose_name=u"买入价格", max_length=64)
     buy_cnt = models.CharField(verbose_name=u"买入数量", max_length=64)
     buy_factor = models.CharField(verbose_name=u"买入策略", max_length=64)
-    symbol = models.CharField(verbose_name=u"买入策略", max_length=64)
+    symbol = models.CharField(verbose_name=u"股票编号", max_length=64)
     buy_pos = models.CharField(verbose_name=u"买入滑dian", max_length=64)
     buy_type_str = models.CharField(verbose_name=u"买入类型", max_length=64)
     expect_direction = models.CharField(verbose_name=u"预期方向", max_length=64)
@@ -138,17 +138,12 @@ class Orders(models.Model):
     profit_cg_hunder = models.CharField(verbose_name=u"盈利率", max_length=64)
     keep_days = models.CharField(verbose_name=u"持股天数", max_length=64)
 
-    stock = models.ForeignKey(Stock, null=True, blank=True, on_delete=models.SET_NULL)
-    run_loop_group = models.ForeignKey(RunLoopGroup, null=True, blank=True, on_delete=models.SET_NULL)
-
-    # def __init__(self,**kwargs):
-    #     self.__dict__.update(kwargs)
+    stock = models.ForeignKey(Stock, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=u"股票")
+    run_loop_group = models.ForeignKey(RunLoopGroup, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=u"回测")
 
     class Meta:
         verbose_name = u"回测订单"
         verbose_name_plural = verbose_name
-        # db_table = 'mytable'
-        # managed = False＃如果表已经存在
 
     def __str__(self):
-        return '回测订单: %s' % (self.symbol,)
+        return '回测订单: %s' % (self.run_loop_group,)

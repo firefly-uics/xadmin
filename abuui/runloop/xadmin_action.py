@@ -1,33 +1,19 @@
-from django.http import HttpResponse
-
-from abupy.CoreBu import ABuEnv
-
 import abupy
-from abupy import EMarketSourceType, EDataCacheType, abu
-
-from abupy import EMarketDataFetchMode
 
 from django.db import connection
 
 from abuui import settings
 from base.models import Stock
-from .models import RunLoopGroup, Orders
+from .models import Orders
 from xadmin.plugins.actions import BaseActionView
-from abupy import AbuFactorBuyBreak, AbuBenchmark, AbuCapital, AbuKLManager, AbuPickTimeWorker, ABuTradeProxy, \
-    ABuPickTimeExecute, ABuTradeExecute, AbuMetricsBase, AbuFactorSellBreak, AbuFactorAtrNStop, AbuFactorCloseAtrNStop, \
-    AbuFactorPreAtrNStop, EMarketTargetType
+from abupy import AbuFactorBuyBreak, AbuBenchmark, AbuCapital, AbuPickTimeWorker, ABuPickTimeExecute, ABuTradeExecute, AbuMetricsBase, AbuFactorSellBreak, AbuFactorAtrNStop, AbuFactorCloseAtrNStop, \
+    AbuFactorPreAtrNStop
 
 from django.db import connection
-import matplotlib.pyplot as plt
 
 from django.conf import settings
-from django.core import signals
-from django.dispatch import dispatcher
 import sqlalchemy
-from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.engine.url import URL
-import pandas as pd
-import io
 
 
 class MyAction(BaseActionView):
@@ -37,25 +23,6 @@ class MyAction(BaseActionView):
     model_perm = 'change'
 
     abupy.env.disable_example_env_ipython()
-
-    def create_engine(self):
-        user = settings.DATABASES['default']['USER']
-        password = settings.DATABASES['default']['PASSWORD']
-        database_name = settings.DATABASES['default']['NAME']
-        host = settings.DATABASES['default']['HOST']
-        port = settings.DATABASES['default']['PORT']
-
-        database_url = 'mysql+mysqldb://{user}:{password}@{host}:{port}/{database_name}?charset=utf8'.format(
-            user=user,
-            host=host,
-            port=port,
-            password=password,
-            database_name=database_name,
-        )
-
-        engine = sqlalchemy.create_engine(database_url)
-
-        return engine
 
     def do_action(self, queryset):
         for obj in queryset:
@@ -89,25 +56,15 @@ class MyAction(BaseActionView):
                                                                                                         capital,
                                                                                                         show=False)
 
-            # query = str(ModelToRetrive.objects.all().query)
-            # df = pandas.read_sql_query(query, connection)
-
             metrics = AbuMetricsBase(orders_pd, action_pd, capital, benchmark)
             metrics.fit_metrics()
 
-            print('orders_pd[:10]:\n', orders_pd[:10].filter(
-                ['symbol', 'buy_price', 'buy_cnt', 'buy_factor', 'buy_pos', 'sell_date', 'sell_type_extra', 'sell_type',
-                 'profit']))
-            print('action_pd[:10]:\n', action_pd[:10])
 
-            stock = Stock.objects.filter(symbol='002396')
+            for symbol in choice_symbols:
+                stock = Stock.objects.filter(symbol=symbol)
+                orders_pd.loc[orders_pd['symbol'] == ('sz%s' % symbol), 'stock_id'] = stock[0].id
 
             orders_pd['run_loop_group_id'] = obj.id
-
-            print('orders_pd[:10]:\n', orders_pd[:10].filter(
-                ['symbol', 'buy_price', 'buy_cnt', 'buy_factor', 'buy_pos', 'sell_date', 'sell_type_extra', 'sell_type',
-                 'run_loop_group_id']))
-            orders_pd.loc[orders_pd['symbol'] == 'sz002396', 'stock_id'] = stock[0].id
 
             orders = Orders.objects.filter(run_loop_group_id=obj.id)
             if len(orders) > 0:
@@ -117,10 +74,6 @@ class MyAction(BaseActionView):
                 dictObject = row.to_dict()
                 Orders.objects.create(**dictObject)
 
-            # orders_pd[:len(orders_pd)].to_sql('runloop_orders', self.create_engine(), if_exists='append', index=False, chunksize=2000)
-
-            # pd.io.sql.to_sql(orders_pd, 'runloop_orders', self.create_engine(), if_exists='append', index=False)
-            # orders_pd.to_sql('runloop_runloopgroup_action_pd', self.create_engine(), if_exists='append')
 
             str = ''
 

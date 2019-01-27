@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from django.utils.translation import ugettext as _
 
 import xadmin
-from .xadmin_action import MyAction
+from .xadmin_action import RunloopAction, GridSearchAction
 from .models import RunLoopGroup, FactorBuy, FactorBuyBreakXd, FactorSellBreakXd, Orders
 
 ACTION_NAME = {
@@ -77,7 +77,7 @@ class RunLoopGroupAdmin(object):
 
     style_fields = {"factor_buys": "checkbox-inline","factor_sells": "checkbox-inline"}
 
-    actions = [MyAction, ]
+    actions = [RunloopAction, GridSearchAction]
 
 @xadmin.sites.register(Orders)
 class OrdersAdmin(object):

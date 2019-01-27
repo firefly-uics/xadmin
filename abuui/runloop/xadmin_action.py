@@ -11,7 +11,7 @@ from xadmin.plugins.actions import BaseActionView
 from .models import Orders
 
 
-class MyAction(BaseActionView):
+class RunloopAction(BaseActionView):
     # 这里需要填写三个属性
     action_name = "change_sss"  #: 相当于这个 Action 的唯一标示, 尽量用比较针对性的名字
     description = u'回测 %(verbose_name_plural)s'  #: 描述, 出现在 Action 菜单中, 可以使用 ``%(verbose_name_plural)s`` 代替 Model 的名字.
@@ -32,7 +32,6 @@ class MyAction(BaseActionView):
             buy_factors = []
             sell_factors = []
             choice_symbols = []
-
 
             for factor_buy in obj.factor_buys.all():
                 buy_factors.append(eval(factor_buy.get_class_name_display()))
@@ -67,6 +66,12 @@ class MyAction(BaseActionView):
             metrics = AbuMetricsBase(orders_pd, action_pd, capital, benchmark)
             metrics.fit_metrics()
 
+            if orders_pd is None:
+                obj.status = 'done'
+                obj.description = 'none'
+                self.lock.release()
+                return
+
             for stock in stocks:
                 # stock = Stock.objects.filter(symbol=s.symbol)
                 print(('%s%s' % (stock.market.lower(), stock.symbol)))
@@ -74,8 +79,6 @@ class MyAction(BaseActionView):
                     orders_pd['symbol'] == ('%s%s' % (stock.market.lower(), stock.symbol)), 'stock_id'] = stock.id
 
             orders_pd['run_loop_group_id'] = obj.id
-
-
 
             for index, row in orders_pd.iterrows():
                 dictObject = row.to_dict()
@@ -110,3 +113,12 @@ class MyAction(BaseActionView):
             new_thread.start()
 
         # return HttpResponse('{"status": "success", "msg": "error"}', content_type='application/json')
+
+class GridSearchAction(BaseActionView):
+    action_name = "change_grid_search"  #: 相当于这个 Action 的唯一标示, 尽量用比较针对性的名字
+    description = u'Grid Search 最优参数 %(verbose_name_plural)s'  #: 描述, 出现在 Action 菜单中, 可以使用 ``%(verbose_name_plural)s`` 代替 Model 的名字.
+    model_perm = 'change'
+
+    def do_action(self, queryset):
+        for obj in queryset:
+            print('GridSearchAction')

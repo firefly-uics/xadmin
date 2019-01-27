@@ -70,7 +70,7 @@ class AbuMetricsBase(object):
                 metrics.plot_sharp_volatility_cmp(only_info=only_info)
         return metrics
 
-    def __init__(self, orders_pd, action_pd, capital, benchmark, enable_stocks_full_rate_factor=False):
+    def __init__(self, orders_pd, action_pd, capital, benchmark, enable_stocks_full_rate_factor=False, log=print):
         """
         :param orders_pd: 回测结果生成的交易订单构成的pd.DataFrame对象
         :param action_pd: 回测结果生成的交易行为构成的pd.DataFrame对象
@@ -91,7 +91,8 @@ class AbuMetricsBase(object):
         if self.orders_pd is not None and self.capital is not None and 'capital_blance' in self.capital.capital_pd:
             self.valid = True
         # ipython notebook下使用logging.info
-        self.log_func = print
+        self.log_func = log
+
 
     @valid_check
     def fit_metrics(self):

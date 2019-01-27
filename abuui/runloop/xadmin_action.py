@@ -5,7 +5,7 @@ import abupy
 import numpy as np
 from abupy import AbuFactorBuyBreak, AbuBenchmark, AbuCapital, ABuPickTimeExecute, AbuMetricsBase, AbuFactorAtrNStop, \
     AbuFactorCloseAtrNStop, \
-    AbuFactorPreAtrNStop, AbuFactorSellBreak, ABuGridHelper, GridSearch, ABuFileUtil,WrsmScorer
+    AbuFactorPreAtrNStop, AbuFactorSellBreak, ABuGridHelper, GridSearch, ABuFileUtil, WrsmScorer, EMarketSourceType
 from base.models import Stock
 
 from xadmin.plugins.actions import BaseActionView
@@ -17,10 +17,17 @@ class RunloopAction(BaseActionView):
     action_name = "change_sss"  #: 相当于这个 Action 的唯一标示, 尽量用比较针对性的名字
     description = u'回测 %(verbose_name_plural)s'  #: 描述, 出现在 Action 菜单中, 可以使用 ``%(verbose_name_plural)s`` 代替 Model 的名字.
     model_perm = 'change'
+    console_info = []
 
+    abupy.env.g_market_source = EMarketSourceType.E_MARKET_SOURCE_tx
     abupy.env.disable_example_env_ipython()
 
     lock = threading.Lock()
+    console_str = []
+
+    def print_to_str(self, s):
+        self.console_info.append(s)
+        print(s)
 
     def booth(self, obj):
         self.lock.acquire()
@@ -52,7 +59,7 @@ class RunloopAction(BaseActionView):
             # sell_factor3 = {'class': AbuFactorPreAtrNStop, 'pre_atr_n': 1.0}
             # sell_factor4 = {'class': AbuFactorCloseAtrNStop, 'close_atr_n': 1.5}
             # sell_factors = [sell_factor1, sell_factor2, sell_factor3, sell_factor4]
-            benchmark = AbuBenchmark()
+            benchmark = AbuBenchmark(start=obj.start, end=obj.end)
             # buy_factors = [{'xd': 60, 'class': AbuFactorBuyBreak},
             #                {'xd': 42, 'class': AbuFactorBuyBreak}]
 
@@ -64,7 +71,7 @@ class RunloopAction(BaseActionView):
                                                                                                         capital,
                                                                                                         show=False)
 
-            metrics = AbuMetricsBase(orders_pd, action_pd, capital, benchmark)
+            metrics = AbuMetricsBase(orders_pd, action_pd, capital, benchmark, log=self.print_to_str)
             metrics.fit_metrics()
 
             if orders_pd is None:
@@ -85,14 +92,11 @@ class RunloopAction(BaseActionView):
                 dictObject = row.to_dict()
                 Orders.objects.create(**dictObject)
 
-            str = ''
-
-            str += '买入后卖出的交易数量:%s \n' % metrics.order_has_ret.shape[0]
-            str += '胜率:%f \n' % (metrics.win_rate * 100)
+            metrics.plot_returns_cmp(only_show_returns=True, only_info=True)
 
             # 其实我们做的只有这一部分 ********
             obj.status = 'done'
-            obj.description = str
+            obj.description = str(self.console_info)
             obj.save()
         else:
             print("Thread_id", obj, "No more")
@@ -233,6 +237,7 @@ class GridSearchAction(BaseActionView):
                       best_score_tuple_grid.buy_factors,
                       best_score_tuple_grid.sell_factors)
 
-                obj.description = 'best_score_tuple_grid.buy_factors:%s, best_score_tuple_grid.sell_factors:%s' % (best_score_tuple_grid.buy_factors,
-                      best_score_tuple_grid.sell_factors)
+                obj.description = 'best_score_tuple_grid.buy_factors:%s, best_score_tuple_grid.sell_factors:%s' % (
+                best_score_tuple_grid.buy_factors,
+                best_score_tuple_grid.sell_factors)
                 obj.save()

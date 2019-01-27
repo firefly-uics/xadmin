@@ -64,7 +64,7 @@ class FactorSellBreakXdAdmin(object):
 
 @xadmin.sites.register(RunLoopGroup)
 class RunLoopGroupAdmin(object):
-    list_display = ("name", "status", "description")
+    list_display = ("name", "start", "end", "status", "description")
     list_display_links = ("name",)
     # readony_fields = ("status", )
     exclude = ['status']
@@ -75,7 +75,7 @@ class RunLoopGroupAdmin(object):
 
     reversion_enable = True
 
-    style_fields = {"factor_buys": "checkbox-inline","factor_sells": "checkbox-inline"}
+    style_fields = {"factor_buys": "checkbox-inline", "factor_sells": "checkbox-inline"}
 
     actions = [RunloopAction, GridSearchAction]
 

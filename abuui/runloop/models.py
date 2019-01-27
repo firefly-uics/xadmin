@@ -97,7 +97,9 @@ class FactorSellBreakXd(FactorSell):
 @python_2_unicode_compatible
 class RunLoopGroup(models.Model):
     name = models.CharField(verbose_name=u"名称", max_length=64)
-    description = models.TextField(verbose_name=u"说明")
+    start = models.DateField(verbose_name=u"开始")
+    end = models.DateField(verbose_name=u"结束")
+    description = models.TextField(verbose_name=u"说明",blank=True)
     status = models.CharField(verbose_name=u"状态", max_length=64, blank=True, default="新建")
 
     read_cash = models.IntegerField(verbose_name=u"初始化资金")

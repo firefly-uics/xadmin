@@ -131,48 +131,29 @@ class GridSearchAction(BaseActionView):
         :return:
         """
 
-        stop_win_range = np.arange(2.0, 3.0, 1)
-        stop_loss_range = np.arange(1, 2, 1)
+        xd_sell_range = np.arange(10, 20, 3)
+        xd_buy_range = np.arange(5, 10, 3)
 
-        sell_atr_nstop_factor_grid = {
-            'class': [AbuFactorAtrNStop],
-            'stop_loss_n': stop_loss_range,
-            'stop_win_n': stop_win_range
-        }
-
-        close_atr_range = np.arange(1.0, 2.0, 1)
-        pre_atr_range = np.arange(1.0, 2.0, 1)
-
-        sell_atr_pre_factor_grid = {
-            'class': [AbuFactorPreAtrNStop],
-            'pre_atr_n': pre_atr_range
-        }
-
-        sell_atr_close_factor_grid = {
-            'class': [AbuFactorCloseAtrNStop],
-            'close_atr_n': close_atr_range
+        sell_bk_factor_grid = {
+            'class': [AbuFactorSellBreak],
+            'xd': xd_sell_range
         }
 
         sell_factors_product = ABuGridHelper.gen_factor_grid(
             ABuGridHelper.K_GEN_FACTOR_PARAMS_SELL,
-            [sell_atr_nstop_factor_grid, sell_atr_pre_factor_grid, sell_atr_close_factor_grid])
+            [sell_bk_factor_grid])
 
         if show:
             print('卖出因子参数共有{}种组合方式'.format(len(sell_factors_product)))
             print('卖出因子组合0形式为{}'.format(sell_factors_product[0]))
 
-        buy_bk_factor_grid1 = {
+        buy_bk_factor_grid = {
             'class': [AbuFactorBuyBreak],
-            'xd': [42]
-        }
-
-        buy_bk_factor_grid2 = {
-            'class': [AbuFactorBuyBreak],
-            'xd': [60]
+            'xd': xd_buy_range
         }
 
         buy_factors_product = ABuGridHelper.gen_factor_grid(
-            ABuGridHelper.K_GEN_FACTOR_PARAMS_BUY, [buy_bk_factor_grid1, buy_bk_factor_grid2])
+            ABuGridHelper.K_GEN_FACTOR_PARAMS_BUY, [buy_bk_factor_grid])
 
         if show:
             print('买入因子参数共有{}种组合方式'.format(len(buy_factors_product)))
@@ -185,9 +166,12 @@ class GridSearchAction(BaseActionView):
             print('GridSearchAction')
             score_fn = '../gen/score_tuple_array'
 
-            read_cash = 1000000
+            read_cash = obj.read_cash
+            stocks = obj.stocks.all()
 
-            choice_symbols = ['002396', '002230']
+            choice_symbols = []
+            for stock in stocks:
+                choice_symbols.append(stock.symbol)
 
             sell_factors_product, buy_factors_product = self.gen_factor_params(True)
 
@@ -202,10 +186,10 @@ class GridSearchAction(BaseActionView):
                 # 运行GridSearch n_jobs=-1启动cpu个数的进程数
                 scores, score_tuple_array = grid_search.fit(n_jobs=-1)
 
-                """
+                """  
                     针对运行完成输出的score_tuple_array可以使用dump_pickle保存在本地，以方便修改其它验证效果。
                 """
-                ABuFileUtil.dump_pickle(score_tuple_array, '../gen/score_tuple_array')
+                ABuFileUtil.dump_pickle(score_tuple_array, score_fn)
 
                 print('组合因子参数数量{}'.format(len(buy_factors_product) * len(sell_factors_product)))
                 print('最终评分结果数量{}'.format(len(scores)))
@@ -238,6 +222,6 @@ class GridSearchAction(BaseActionView):
                       best_score_tuple_grid.sell_factors)
 
                 obj.description = 'best_score_tuple_grid.buy_factors:%s, best_score_tuple_grid.sell_factors:%s' % (
-                best_score_tuple_grid.buy_factors,
-                best_score_tuple_grid.sell_factors)
+                    best_score_tuple_grid.buy_factors,
+                    best_score_tuple_grid.sell_factors)
                 obj.save()

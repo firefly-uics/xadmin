@@ -3,9 +3,8 @@ from __future__ import absolute_import
 from django.utils.translation import ugettext as _
 
 import xadmin
-from .xadmin_action import RunloopAction, GridSearchAction
-from .models import RunLoopGroup, FactorBuy, FactorBuyBreakXd, FactorSellBreakXd, Orders, FactorBuyRangeBreakXd, \
-    FactorSellRangeBreakXd, RunGridSearch
+from .xadmin_action import RunloopAction
+from .models import RunLoopGroup, FactorBuy, FactorBuyBreakXd, FactorSellBreakXd, Orders
 
 ACTION_NAME = {
     'add': _('Can add %s'),
@@ -14,6 +13,7 @@ ACTION_NAME = {
     'delete': _('Can delete %s'),
     'view': _('Can view %s'),
 }
+
 
 # @xadmin.sites.register(FactorBuy)
 # class FactorBuyAdmin(object):
@@ -45,23 +45,6 @@ class FactorBuyBreakXdAdmin(object):
 
     reversion_enable = True
 
-@xadmin.sites.register(FactorBuyRangeBreakXd)
-class FactorBuyRangeBreakXdAdmin(object):
-    list_display = ("name", "start", "end", "step")
-
-    list_display_links = ("name",)
-
-    search_fields = ["name"]
-
-    list_filter = [
-        "name"
-    ]
-
-    list_quick_filter = [{"field": "name", "limit": 10}]
-
-    search_fields = ["name"]
-
-    reversion_enable = True
 
 @xadmin.sites.register(FactorSellBreakXd)
 class FactorSellBreakXdAdmin(object):
@@ -81,23 +64,6 @@ class FactorSellBreakXdAdmin(object):
 
     reversion_enable = True
 
-@xadmin.sites.register(FactorSellRangeBreakXd)
-class FactorSellRangeBreakXdAdmin(object):
-    list_display = ("name", "start", "end", "step")
-
-    list_display_links = ("name",)
-
-    search_fields = ["name"]
-
-    list_filter = [
-        "name"
-    ]
-
-    list_quick_filter = [{"field": "name", "limit": 10}]
-
-    search_fields = ["name"]
-
-    reversion_enable = True
 
 @xadmin.sites.register(RunLoopGroup)
 class RunLoopGroupAdmin(object):
@@ -116,26 +82,12 @@ class RunLoopGroupAdmin(object):
 
     actions = [RunloopAction]
 
-@xadmin.sites.register(RunGridSearch)
-class RunGridSearchAdmin(object):
-    list_display = ("name", "start", "end", "status", "description")
-    list_display_links = ("name",)
-    # readony_fields = ("status", )
-    exclude = ['status']
-
-    list_quick_filter = [{"field": "name", "limit": 10}]
-
-    search_fields = ["name"]
-
-    reversion_enable = True
-
-    style_fields = {"factor_buys": "checkbox-inline", "factor_sells": "checkbox-inline"}
-
-    actions = [GridSearchAction]
 
 @xadmin.sites.register(Orders)
 class OrdersAdmin(object):
-    list_display = ("run_loop_group", "stock", "profit", "profit_cg_hunder", "buy_date", "buy_price", "buy_cnt", "buy_factor", "sell_date", "sell_price", "sell_type_extra", "sell_type",)
+    list_display = (
+    "run_loop_group", "stock", "profit", "profit_cg_hunder", "buy_date", "buy_price", "buy_cnt", "buy_factor",
+    "sell_date", "sell_price", "sell_type_extra", "sell_type",)
     list_display_links = ("stock",)
     # readony_fields = ("status", )
     # exclude = ['status']

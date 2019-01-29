@@ -1,3 +1,4 @@
+import numpy as np
 from django.db import models
 
 from django.conf import settings
@@ -74,6 +75,29 @@ class FactorBuyBreakXd(FactorBuy):
     def __str__(self):
         return '策略名称: %s, 周期: %s' % (self.name, self.xd)
 
+@python_2_unicode_compatible
+class Range(models.Model):
+    start = models.IntegerField(verbose_name=u"开始")
+    end = models.IntegerField(verbose_name=u"结束")
+    step = models.FloatField(verbose_name=u"增量")
+
+    class Meta:
+        abstract = True
+
+@python_2_unicode_compatible
+class FactorBuyRangeBreakXd(FactorBuy, Range):
+
+    class Meta:
+        verbose_name = u"海龟买入范围"
+        verbose_name_plural = verbose_name
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.class_name = "{'xd': np.arange(%d, %d, %.2f), 'class': [AbuFactorBuyBreak]}" % (self.start, self.end, self.step)
+        super().save(force_insert, force_update, using, update_fields)
+
+    def __str__(self):
+        return '策略名称: %s, 周期: np.arange(%d, %d, %.2f)' % (self.name, self.start, self.end, self.step)
+
 
 @python_2_unicode_compatible
 class FactorSellBreakXd(FactorSell):
@@ -92,6 +116,20 @@ class FactorSellBreakXd(FactorSell):
 
     def __str__(self):
         return '策略名称: %s, 周期: %s' % (self.name, self.xd)
+
+@python_2_unicode_compatible
+class FactorSellRangeBreakXd(FactorSell, Range):
+
+    class Meta:
+        verbose_name = u"海龟卖出范围"
+        verbose_name_plural = verbose_name
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.class_name = "{'xd': np.arange(%d, %d, %.2f), 'class': [AbuFactorSellBreak]}" % (self.start, self.end, self.step)
+        super().save(force_insert, force_update, using, update_fields)
+
+    def __str__(self):
+        return '策略名称: %s, 周期: np.arange(%d, %d, %.2f)' % (self.name, self.start, self.end, self.step)
 
 
 @python_2_unicode_compatible

@@ -19,7 +19,7 @@ class RunloopAction(BaseActionView):
     model_perm = 'change'
     console_info = []
 
-    abupy.env.g_market_source = EMarketSourceType.E_MARKET_SOURCE_tx
+    abupy.env.g_market_source = EMarketSourceType.E_MARKET_SOURCE_bd
     abupy.env.disable_example_env_ipython()
 
     lock = threading.Lock()
@@ -59,7 +59,7 @@ class RunloopAction(BaseActionView):
             # sell_factor3 = {'class': AbuFactorPreAtrNStop, 'pre_atr_n': 1.0}
             # sell_factor4 = {'class': AbuFactorCloseAtrNStop, 'close_atr_n': 1.5}
             # sell_factors = [sell_factor1, sell_factor2, sell_factor3, sell_factor4]
-            benchmark = AbuBenchmark(start=obj.start, end=obj.end)
+            benchmark = AbuBenchmark(start=str(obj.start), end=str(obj.end))
             # buy_factors = [{'xd': 60, 'class': AbuFactorBuyBreak},
             #                {'xd': 42, 'class': AbuFactorBuyBreak}]
 
@@ -131,8 +131,8 @@ class GridSearchAction(BaseActionView):
         :return:
         """
 
-        xd_sell_range = np.arange(10, 20, 3)
-        xd_buy_range = np.arange(5, 10, 3)
+        xd_sell_range = np.arange(*eval('(10, 30, 1)'))
+        xd_buy_range = np.arange(*eval('(5, 20, 1)'))
 
         sell_bk_factor_grid = {
             'class': [AbuFactorSellBreak],
@@ -163,6 +163,8 @@ class GridSearchAction(BaseActionView):
 
     def do_action(self, queryset):
         for obj in queryset:
+            benchmark = AbuBenchmark(start=str(obj.start), end=str(obj.end))
+
             print('GridSearchAction')
             score_fn = '../gen/score_tuple_array'
 
@@ -175,7 +177,7 @@ class GridSearchAction(BaseActionView):
 
             sell_factors_product, buy_factors_product = self.gen_factor_params(True)
 
-            grid_search = GridSearch(read_cash, choice_symbols,
+            grid_search = GridSearch(read_cash, choice_symbols, benchmark=benchmark,
                                      buy_factors_product=buy_factors_product,
                                      sell_factors_product=sell_factors_product)
 

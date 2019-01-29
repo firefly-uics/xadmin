@@ -361,7 +361,7 @@ class GridSearch(object):
 
         return scores, score_tuple_array
 
-    def __init__(self, read_cash, choice_symbols, stock_pickers_product=None,
+    def __init__(self, read_cash, choice_symbols, benchmark=AbuBenchmark(), stock_pickers_product=None,
                  buy_factors_product=None, sell_factors_product=None, score_weights=None, metrics_class=None):
         """
         :param read_cash: 初始化资金数(int)
@@ -373,7 +373,7 @@ class GridSearch(object):
         :param metrics_class: make_scorer中设置的度量类
         """
         self.read_cash = read_cash
-        self.benchmark = AbuBenchmark()
+        self.benchmark = benchmark
         self.kl_pd_manager = AbuKLManager(self.benchmark, AbuCapital(self.read_cash, self.benchmark))
         self.choice_symbols = choice_symbols
         self.stock_pickers_product = [None] if stock_pickers_product is None else stock_pickers_product

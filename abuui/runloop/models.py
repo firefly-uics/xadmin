@@ -80,12 +80,25 @@ class Range(models.Model):
     start = models.IntegerField(verbose_name=u"开始")
     end = models.IntegerField(verbose_name=u"结束")
     step = models.FloatField(verbose_name=u"增量")
+    name = models.CharField(max_length=64, verbose_name=u'名称')
+    class_name = models.CharField(max_length=256, choices=FACTOR_SELL_CLASSES, verbose_name=u'策略', editable=False)
 
     class Meta:
         abstract = True
 
+    def __str__(self):
+        return '策略名称: %s' % self.name
+
 @python_2_unicode_compatible
-class FactorBuyRangeBreakXd(FactorBuy, Range):
+class RangeBuy(Range):
+    pass
+
+@python_2_unicode_compatible
+class RangeSell(Range):
+    pass
+
+@python_2_unicode_compatible
+class FactorBuyRangeBreakXd(RangeBuy):
 
     class Meta:
         verbose_name = u"海龟买入范围"
@@ -118,7 +131,7 @@ class FactorSellBreakXd(FactorSell):
         return '策略名称: %s, 周期: %s' % (self.name, self.xd)
 
 @python_2_unicode_compatible
-class FactorSellRangeBreakXd(FactorSell, Range):
+class FactorSellRangeBreakXd(RangeSell):
 
     class Meta:
         verbose_name = u"海龟卖出范围"
@@ -133,21 +146,25 @@ class FactorSellRangeBreakXd(FactorSell, Range):
 
 
 @python_2_unicode_compatible
-class RunLoopGroup(models.Model):
+class RunBase(models.Model):
     name = models.CharField(verbose_name=u"名称", max_length=64)
     start = models.DateField(verbose_name=u"开始")
     end = models.DateField(verbose_name=u"结束")
-    description = models.TextField(verbose_name=u"说明",blank=True)
+    description = models.TextField(verbose_name=u"说明", blank=True)
     status = models.CharField(verbose_name=u"状态", max_length=64, blank=True, default="新建")
 
     read_cash = models.IntegerField(verbose_name=u"初始化资金")
 
+    stocks = models.ManyToManyField(
+        Stock, verbose_name=u'股票组合', blank=False, related_name='stock_groups')
+
+
+@python_2_unicode_compatible
+class RunLoopGroup(RunBase):
     factor_buys = models.ManyToManyField(
         FactorBuy, verbose_name=u'买策略组合', blank=False, related_name='factor_buy_groups')
     factor_sells = models.ManyToManyField(
         FactorSell, verbose_name=u'卖策略组合', blank=False, related_name='factor_sell_groups')
-    stocks = models.ManyToManyField(
-        Stock, verbose_name=u'股票组合', blank=False, related_name='stock_groups')
 
     class Meta:
         verbose_name = u"回测"
@@ -155,6 +172,22 @@ class RunLoopGroup(models.Model):
 
     def __str__(self):
         return '回测名称: %s' % (self.name,)
+
+@python_2_unicode_compatible
+class RunGridSearch(RunBase):
+
+    factor_buys = models.ManyToManyField(
+        RangeBuy, verbose_name=u'买策略组合', blank=False, related_name='factor_buy_groups')
+    factor_sells = models.ManyToManyField(
+        RangeSell, verbose_name=u'卖策略组合', blank=False, related_name='factor_sell_groups')
+
+
+    class Meta:
+        verbose_name = u"GridSearch"
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return '参数调优: %s' % (self.name,)
 
 @python_2_unicode_compatible
 class Orders(models.Model):

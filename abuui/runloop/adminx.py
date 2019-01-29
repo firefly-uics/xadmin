@@ -5,7 +5,7 @@ from django.utils.translation import ugettext as _
 import xadmin
 from .xadmin_action import RunloopAction, GridSearchAction
 from .models import RunLoopGroup, FactorBuy, FactorBuyBreakXd, FactorSellBreakXd, Orders, FactorBuyRangeBreakXd, \
-    FactorSellRangeBreakXd
+    FactorSellRangeBreakXd, RunGridSearch
 
 ACTION_NAME = {
     'add': _('Can add %s'),
@@ -114,7 +114,24 @@ class RunLoopGroupAdmin(object):
 
     style_fields = {"factor_buys": "checkbox-inline", "factor_sells": "checkbox-inline"}
 
-    actions = [RunloopAction, GridSearchAction]
+    actions = [RunloopAction]
+
+@xadmin.sites.register(RunGridSearch)
+class RunGridSearchAdmin(object):
+    list_display = ("name", "start", "end", "status", "description")
+    list_display_links = ("name",)
+    # readony_fields = ("status", )
+    exclude = ['status']
+
+    list_quick_filter = [{"field": "name", "limit": 10}]
+
+    search_fields = ["name"]
+
+    reversion_enable = True
+
+    style_fields = {"factor_buys": "checkbox-inline", "factor_sells": "checkbox-inline"}
+
+    actions = [GridSearchAction]
 
 @xadmin.sites.register(Orders)
 class OrdersAdmin(object):

@@ -16,36 +16,73 @@ class GridSearchAction(BaseActionView):
     description = u'Grid Search 最优参数 %(verbose_name_plural)s'  #: 描述, 出现在 Action 菜单中, 可以使用 ``%(verbose_name_plural)s`` 代替 Model 的名字.
     model_perm = 'change'
 
-    def gen_factor_params(self, show=True):
+    lock = threading.Lock()
+    console_str = []
+
+    def booth(self, obj, score_fn):
+        self.lock.acquire()
+
+        if obj:
+            print('Thread_id', obj)
+            benchmark = AbuBenchmark(start=str(obj.start), end=str(obj.end))
+
+            read_cash = obj.read_cash
+            stocks = obj.stocks.all()
+
+            choice_symbols = []
+            for stock in stocks:
+                choice_symbols.append(stock.symbol)
+
+            sell_factors_product, buy_factors_product = self.gen_factor_params(obj, True)
+
+            grid_search = GridSearch(read_cash, choice_symbols, benchmark=benchmark,
+                                     buy_factors_product=buy_factors_product,
+                                     sell_factors_product=sell_factors_product)
+
+            """
+                注意下面的运行耗时大约1小时多，如果所有cpu都用上的话，也可以设置n_jobs为 < cpu进程数，一边做其它的一边跑
+            """
+            # 运行GridSearch n_jobs=-1启动cpu个数的进程数
+            scores, score_tuple_array = grid_search.fit(n_jobs=-1)
+
+            """  
+                针对运行完成输出的score_tuple_array可以使用dump_pickle保存在本地，以方便修改其它验证效果。
+            """
+            ABuFileUtil.dump_pickle(score_tuple_array, score_fn)
+
+            print('组合因子参数数量{}'.format(len(buy_factors_product) * len(sell_factors_product)))
+            print('最终评分结果数量{}'.format(len(scores)))
+
+        else:
+            print("Thread_id", obj, "No more")
+
+        self.lock.release()
+
+    def gen_factor_params(self, obj, show=True):
         """
         参数进行排列组合
         :return:
         """
 
+        buy_factors = []
+        sell_factors = []
 
-        xd_sell_range = np.arange(*eval('(10, 30, 1)'))
-        xd_buy_range = np.arange(*eval('(5, 20, 1)'))
+        for factor_buy in obj.factor_buys.all():
+            buy_factors.append(eval(factor_buy.get_class_name_display()))
 
-        sell_bk_factor_grid = {
-            'class': [AbuFactorSellBreak],
-            'xd': xd_sell_range
-        }
+        for factor_sell in obj.factor_sells.all():
+            sell_factors.append(eval(factor_sell.get_class_name_display()))
 
         sell_factors_product = ABuGridHelper.gen_factor_grid(
             ABuGridHelper.K_GEN_FACTOR_PARAMS_SELL,
-            [sell_bk_factor_grid])
+            sell_factors)
 
         if show:
             print('卖出因子参数共有{}种组合方式'.format(len(sell_factors_product)))
             print('卖出因子组合0形式为{}'.format(sell_factors_product[0]))
 
-        buy_bk_factor_grid = {
-            'class': [AbuFactorBuyBreak],
-            'xd': xd_buy_range
-        }
-
         buy_factors_product = ABuGridHelper.gen_factor_grid(
-            ABuGridHelper.K_GEN_FACTOR_PARAMS_BUY, [buy_bk_factor_grid])
+            ABuGridHelper.K_GEN_FACTOR_PARAMS_BUY, buy_factors)
 
         if show:
             print('买入因子参数共有{}种组合方式'.format(len(buy_factors_product)))
@@ -55,38 +92,12 @@ class GridSearchAction(BaseActionView):
 
     def do_action(self, queryset):
         for obj in queryset:
-            benchmark = AbuBenchmark(start=str(obj.start), end=str(obj.end))
 
             print('GridSearchAction')
-            score_fn = '../gen/score_tuple_array'
-
-            read_cash = obj.read_cash
-            stocks = obj.stocks.all()
-
-            choice_symbols = []
-            for stock in stocks:
-                choice_symbols.append(stock.symbol)
-
-            sell_factors_product, buy_factors_product = self.gen_factor_params(True)
-
-            grid_search = GridSearch(read_cash, choice_symbols, benchmark=benchmark,
-                                     buy_factors_product=buy_factors_product,
-                                     sell_factors_product=sell_factors_product)
+            score_fn = '../gen/score_tuple_array_%s' % str(obj.id)
 
             if not ABuFileUtil.file_exist(score_fn):
-                """
-                    注意下面的运行耗时大约1小时多，如果所有cpu都用上的话，也可以设置n_jobs为 < cpu进程数，一边做其它的一边跑
-                """
-                # 运行GridSearch n_jobs=-1启动cpu个数的进程数
-                scores, score_tuple_array = grid_search.fit(n_jobs=-1)
-
-                """  
-                    针对运行完成输出的score_tuple_array可以使用dump_pickle保存在本地，以方便修改其它验证效果。
-                """
-                ABuFileUtil.dump_pickle(score_tuple_array, score_fn)
-
-                print('组合因子参数数量{}'.format(len(buy_factors_product) * len(sell_factors_product)))
-                print('最终评分结果数量{}'.format(len(scores)))
+                self.booth(obj, score_fn)
 
             else:
                 """

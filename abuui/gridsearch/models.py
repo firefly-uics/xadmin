@@ -50,11 +50,11 @@ class FactorBuyRangeBreakXd(RangeBuy):
         verbose_name_plural = verbose_name
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        self.class_name = "{'xd': np.arange(%d, %d, %.2f), 'class': [AbuFactorBuyBreak]}" % (self.start, self.end, self.step)
+        self.class_name = "{'xd': np.arange(%d, %d, %d), 'class': [AbuFactorBuyBreak]}" % (self.start, self.end, self.step)
         super().save(force_insert, force_update, using, update_fields)
 
     def __str__(self):
-        return '策略名称: %s, 周期: np.arange(%d, %d, %.2f)' % (self.name, self.start, self.end, self.step)
+        return '策略名称: %s, 周期: np.arange(%d, %d, %d)' % (self.name, self.start, self.end, self.step)
 
 
 @python_2_unicode_compatible
@@ -65,11 +65,11 @@ class FactorSellRangeBreakXd(RangeSell):
         verbose_name_plural = verbose_name
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        self.class_name = "{'xd': np.arange(%d, %d, %.2f), 'class': [AbuFactorSellBreak]}" % (self.start, self.end, self.step)
+        self.class_name = "{'xd': np.arange(%d, %d, %d), 'class': [AbuFactorSellBreak]}" % (self.start, self.end, self.step)
         super().save(force_insert, force_update, using, update_fields)
 
     def __str__(self):
-        return '策略名称: %s, 周期: np.arange(%d, %d, %.2f)' % (self.name, self.start, self.end, self.step)
+        return '策略名称: %s, 周期: np.arange(%d, %d, %d)' % (self.name, self.start, self.end, self.step)
 
 
 @python_2_unicode_compatible

@@ -97,7 +97,9 @@ class GridSearchAction(BaseActionView):
             score_fn = '../gen/score_tuple_array_%s' % str(obj.id)
 
             if not ABuFileUtil.file_exist(score_fn):
-                self.booth(obj, score_fn)
+
+                new_thread = threading.Thread(target=self.booth, args=(obj,score_fn, ))
+                new_thread.start()
 
             else:
                 """

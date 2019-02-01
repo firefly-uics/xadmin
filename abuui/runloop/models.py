@@ -69,6 +69,30 @@ class FactorBuyBreakXd(FactorBuy):
     def __str__(self):
         return '策略名称: %s, 周期: %s' % (self.name, self.xd)
 
+@python_2_unicode_compatible
+class FactorBuyDoubleMa(FactorBuy):
+    """
+    动态自适应双均线买入策略：
+    双均线策略是量化策略中经典的策略之一，其属于趋势跟踪策略:
+        1. 预设两条均线：如一个ma=5，一个ma=60, 5的均线被称作快线，60的均线被称作慢线
+        2. 择时买入策略中当快线上穿慢线（ma5上穿ma60）称为形成金叉买点信号，买入股票
+        3. 自适应动态慢线，不需要输入慢线值，根据走势震荡套利空间，寻找合适的ma慢线
+        4. 自适应动态快线，不需要输入快线值，根据慢线以及大盘走势，寻找合适的ma快线
+    """
+    slow_int = models.IntegerField(verbose_name=u"慢线(-1:为自动)")
+    fast_int = models.IntegerField(verbose_name=u"快线(-1:为自动)")
+
+    class Meta:
+        verbose_name = u"双均线买"
+        verbose_name_plural = verbose_name
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.class_name = "{'slow': %d, 'fast': %d, 'class': AbuDoubleMaBuy}" % (self.slow_int, self.fast_int)
+        super().save(force_insert, force_update, using, update_fields)
+
+    def __str__(self):
+        return '策略:%s, 名称: %s, 短周期: %s, 长周期: %s' % (self._meta.verbose_name, self.name, self.slow_int, self.fast_int)
+
 
 @python_2_unicode_compatible
 class FactorSellBreakXd(FactorSell):
@@ -88,6 +112,28 @@ class FactorSellBreakXd(FactorSell):
     def __str__(self):
         return '策略名称: %s, 周期: %s' % (self.name, self.xd)
 
+
+@python_2_unicode_compatible
+class FactorSellDoubleMa(FactorSell):
+    """
+    双均线卖出策略：
+        双均线策略是量化策略中经典的策略之一，其属于趋势跟踪策略:
+        1. 预设两条均线：如一个ma=5，一个ma=60, 5的均线被称作快线，60的均线被称作慢线
+        2. 择时卖出策略中当快线下穿慢线（ma5下穿ma60）称为形成死叉卖点信号，卖出股票
+    """
+    slow_int = models.IntegerField(verbose_name=u"慢线")
+    fast_int = models.IntegerField(verbose_name=u"快线")
+
+    class Meta:
+        verbose_name = u"双均线卖"
+        verbose_name_plural = verbose_name
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.class_name = "{'slow': %d, 'fast': %d, 'class': AbuDoubleMaSell}" % (self.slow_int, self.fast_int)
+        super().save(force_insert, force_update, using, update_fields)
+
+    def __str__(self):
+        return '策略:%s, 名称: %s, 短周期: %s, 长周期: %s' % (self._meta.verbose_name, self.name, self.slow_int, self.fast_int)
 
 
 @python_2_unicode_compatible

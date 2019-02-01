@@ -5,7 +5,7 @@ import abupy
 import numpy as np
 from abupy import AbuFactorBuyBreak, AbuBenchmark, AbuCapital, ABuPickTimeExecute, AbuMetricsBase, AbuFactorAtrNStop, \
     AbuFactorCloseAtrNStop, \
-    AbuFactorPreAtrNStop, AbuFactorSellBreak, ABuGridHelper, GridSearch, ABuFileUtil, WrsmScorer, EMarketSourceType
+    AbuFactorPreAtrNStop, AbuFactorSellBreak, ABuGridHelper, GridSearch, ABuFileUtil, WrsmScorer, EMarketSourceType,AbuDoubleMaBuy, AbuDoubleMaSell
 
 from xadmin.plugins.actions import BaseActionView
 from .models import Orders

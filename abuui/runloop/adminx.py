@@ -4,7 +4,8 @@ from django.utils.translation import ugettext as _
 
 import xadmin
 from .xadmin_action import RunloopAction
-from .models import RunLoopGroup, FactorBuy, FactorBuyBreakXd, FactorSellBreakXd, Orders
+from .models import RunLoopGroup, FactorBuy, FactorBuyBreakXd, FactorSellBreakXd, Orders, FactorBuyDoubleMa, \
+    FactorSellDoubleMa
 
 ACTION_NAME = {
     'add': _('Can add %s'),
@@ -46,9 +47,46 @@ class FactorBuyBreakXdAdmin(object):
     reversion_enable = True
 
 
+@xadmin.sites.register(FactorBuyDoubleMa)
+class FactorBuyDoubleMaAdmin(object):
+    list_display = ("name", "slow_int", "fast_int", "class_name")
+
+    list_display_links = ("name",)
+
+    search_fields = ["name"]
+
+    list_filter = [
+        "name"
+    ]
+
+    list_quick_filter = [{"field": "name", "limit": 10}]
+
+    search_fields = ["name"]
+
+    reversion_enable = True
+
+
 @xadmin.sites.register(FactorSellBreakXd)
 class FactorSellBreakXdAdmin(object):
     list_display = ("name", "xd", "class_name")
+
+    list_display_links = ("name",)
+
+    search_fields = ["name"]
+
+    list_filter = [
+        "name"
+    ]
+
+    list_quick_filter = [{"field": "name", "limit": 10}]
+
+    search_fields = ["name"]
+
+    reversion_enable = True
+
+@xadmin.sites.register(FactorSellDoubleMa)
+class FactorSellDoubleMaAdmin(object):
+    list_display = ("name", "slow_int", "fast_int", "class_name")
 
     list_display_links = ("name",)
 

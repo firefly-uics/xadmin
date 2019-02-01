@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'reversion',
 
     'base',
+    'factorbuy',
+    'factorsell',
     'runloop',
     'gridsearch',
 

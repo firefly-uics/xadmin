@@ -4,8 +4,7 @@ from django.utils.translation import ugettext as _
 
 import xadmin
 from .xadmin_action import RunloopAction
-from .models import RunLoopGroup, FactorBuy, FactorBuyBreakXd, FactorSellBreakXd, Orders, FactorBuyDoubleMa, \
-    FactorSellDoubleMa
+from .models import RunLoopGroup, Orders
 
 ACTION_NAME = {
     'add': _('Can add %s'),
@@ -14,81 +13,6 @@ ACTION_NAME = {
     'delete': _('Can delete %s'),
     'view': _('Can view %s'),
 }
-
-
-@xadmin.sites.register(FactorBuyBreakXd)
-class FactorBuyBreakXdAdmin(object):
-    list_display = ("name", "xd")
-
-    list_display_links = ("name",)
-
-    search_fields = ["name"]
-
-    list_filter = [
-        "name"
-    ]
-
-    list_quick_filter = [{"field": "name", "limit": 10}]
-
-    search_fields = ["name"]
-
-    reversion_enable = True
-
-
-@xadmin.sites.register(FactorBuyDoubleMa)
-class FactorBuyDoubleMaAdmin(object):
-    list_display = ("name", "slow_int", "fast_int")
-
-    list_display_links = ("name",)
-
-    search_fields = ["name"]
-
-    list_filter = [
-        "name"
-    ]
-
-    list_quick_filter = [{"field": "name", "limit": 10}]
-
-    search_fields = ["name"]
-
-    reversion_enable = True
-
-
-@xadmin.sites.register(FactorSellBreakXd)
-class FactorSellBreakXdAdmin(object):
-    list_display = ("name", "xd")
-
-    list_display_links = ("name",)
-
-    search_fields = ["name"]
-
-    list_filter = [
-        "name"
-    ]
-
-    list_quick_filter = [{"field": "name", "limit": 10}]
-
-    search_fields = ["name"]
-
-    reversion_enable = True
-
-@xadmin.sites.register(FactorSellDoubleMa)
-class FactorSellDoubleMaAdmin(object):
-    list_display = ("name", "slow_int", "fast_int")
-
-    list_display_links = ("name",)
-
-    search_fields = ["name"]
-
-    list_filter = [
-        "name"
-    ]
-
-    list_quick_filter = [{"field": "name", "limit": 10}]
-
-    search_fields = ["name"]
-
-    reversion_enable = True
 
 
 @xadmin.sites.register(RunLoopGroup)
@@ -112,8 +36,8 @@ class RunLoopGroupAdmin(object):
 @xadmin.sites.register(Orders)
 class OrdersAdmin(object):
     list_display = (
-    "run_loop_group", "stock", "profit", "profit_cg_hunder", "buy_date", "buy_price", "buy_cnt", "buy_factor",
-    "sell_date", "sell_price", "sell_type_extra", "sell_type",)
+        "run_loop_group", "stock", "profit", "profit_cg_hunder", "buy_date", "buy_price", "buy_cnt", "buy_factor",
+        "sell_date", "sell_price", "sell_type_extra", "sell_type",)
     list_display_links = ("stock",)
     # readony_fields = ("status", )
     # exclude = ['status']

@@ -16,21 +16,9 @@ ACTION_NAME = {
 }
 
 
-# @xadmin.sites.register(FactorBuy)
-# class FactorBuyAdmin(object):
-#     list_display = ("name",)
-#     list_display_links = ("name",)
-#
-#     list_quick_filter = [{"field": "name", "limit": 10}]
-#
-#     search_fields = ["name"]
-#
-#     reversion_enable = True
-
-
 @xadmin.sites.register(FactorBuyBreakXd)
 class FactorBuyBreakXdAdmin(object):
-    list_display = ("name", "xd", "class_name")
+    list_display = ("name", "xd")
 
     list_display_links = ("name",)
 
@@ -49,7 +37,7 @@ class FactorBuyBreakXdAdmin(object):
 
 @xadmin.sites.register(FactorBuyDoubleMa)
 class FactorBuyDoubleMaAdmin(object):
-    list_display = ("name", "slow_int", "fast_int", "class_name")
+    list_display = ("name", "slow_int", "fast_int")
 
     list_display_links = ("name",)
 
@@ -68,7 +56,7 @@ class FactorBuyDoubleMaAdmin(object):
 
 @xadmin.sites.register(FactorSellBreakXd)
 class FactorSellBreakXdAdmin(object):
-    list_display = ("name", "xd", "class_name")
+    list_display = ("name", "xd")
 
     list_display_links = ("name",)
 
@@ -86,7 +74,7 @@ class FactorSellBreakXdAdmin(object):
 
 @xadmin.sites.register(FactorSellDoubleMa)
 class FactorSellDoubleMaAdmin(object):
-    list_display = ("name", "slow_int", "fast_int", "class_name")
+    list_display = ("name", "slow_int", "fast_int")
 
     list_display_links = ("name",)
 

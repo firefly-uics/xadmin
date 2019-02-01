@@ -18,6 +18,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=64, verbose_name='名称')),
+                ('factor_name', models.CharField(max_length=64, verbose_name='策略名称', editable=False)),
                 ('class_name', models.CharField(choices=[('FactorBuyBreakXd', '海龟买'), ('AbuDoubleMaBuy', '双均线买')], editable=False, max_length=256, verbose_name='策略')),
             ],
             options={
@@ -30,6 +31,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=64, verbose_name='名称')),
+                ('factor_name', models.CharField(max_length=64, verbose_name='策略名称', editable=False)),
                 ('class_name', models.CharField(choices=[('FactorSellBreakXd', '海龟卖'), ('AbuDoubleMaSell', '双均线卖')], editable=False, max_length=256, verbose_name='策略')),
             ],
             options={

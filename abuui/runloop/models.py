@@ -24,6 +24,7 @@ FACTOR_SELL_CLASSES = (
 @python_2_unicode_compatible
 class FactorBuy(models.Model):
     name = models.CharField(max_length=64, verbose_name=u'名称')
+    factor_name = models.CharField(max_length=64, verbose_name=u'策略名称', editable=False)
     class_name = models.CharField(max_length=256, choices=FACTOR_BUY_CLASSES, verbose_name=u'策略', editable=False)
 
     # def to_factor(self):
@@ -34,13 +35,14 @@ class FactorBuy(models.Model):
         verbose_name_plural = verbose_name
 
     def __str__(self):
-        return '策略名称: %s' % self.name
+        return '策略: %s, 名称: %s' % (self.factor_name, self.name)
 
 
 # Create your models here.
 @python_2_unicode_compatible
 class FactorSell(models.Model):
     name = models.CharField(max_length=64, verbose_name=u'名称')
+    factor_name = models.CharField(max_length=64, verbose_name=u'策略名称', editable=False)
     class_name = models.CharField(max_length=256, choices=FACTOR_SELL_CLASSES, verbose_name=u'策略', editable=False)
 
     class Meta:
@@ -48,7 +50,7 @@ class FactorSell(models.Model):
         verbose_name_plural = verbose_name
 
     def __str__(self):
-        return '策略名称: %s' % self.name
+        return '策略: %s, 名称: %s' % (self.factor_name, self.name)
 
 
 @python_2_unicode_compatible
@@ -64,10 +66,12 @@ class FactorBuyBreakXd(FactorBuy):
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.class_name = "{'xd': %s, 'class': AbuFactorBuyBreak}" % self.xd
+        self.factor_name = self._meta.verbose_name
         super().save(force_insert, force_update, using, update_fields)
 
     def __str__(self):
         return '策略名称: %s, 周期: %s' % (self.name, self.xd)
+
 
 @python_2_unicode_compatible
 class FactorBuyDoubleMa(FactorBuy):
@@ -88,6 +92,7 @@ class FactorBuyDoubleMa(FactorBuy):
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.class_name = "{'slow': %d, 'fast': %d, 'class': AbuDoubleMaBuy}" % (self.slow_int, self.fast_int)
+        self.factor_name = self._meta.verbose_name
         super().save(force_insert, force_update, using, update_fields)
 
     def __str__(self):
@@ -107,6 +112,7 @@ class FactorSellBreakXd(FactorSell):
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.class_name = "{'xd': %s, 'class': AbuFactorSellBreak}" % self.xd
+        self.factor_name = self._meta.verbose_name
         super().save(force_insert, force_update, using, update_fields)
 
     def __str__(self):
@@ -130,6 +136,7 @@ class FactorSellDoubleMa(FactorSell):
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.class_name = "{'slow': %d, 'fast': %d, 'class': AbuDoubleMaSell}" % (self.slow_int, self.fast_int)
+        self.factor_name = self._meta.verbose_name
         super().save(force_insert, force_update, using, update_fields)
 
     def __str__(self):
@@ -149,6 +156,7 @@ class RunLoopGroup(RunBase):
 
     def __str__(self):
         return '回测名称: %s' % (self.name,)
+
 
 @python_2_unicode_compatible
 class Orders(models.Model):
@@ -173,7 +181,8 @@ class Orders(models.Model):
     keep_days = models.CharField(verbose_name=u"持股天数", max_length=64)
 
     stock = models.ForeignKey(Stock, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=u"股票")
-    run_loop_group = models.ForeignKey(RunLoopGroup, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=u"回测")
+    run_loop_group = models.ForeignKey(RunLoopGroup, null=True, blank=True, on_delete=models.SET_NULL,
+                                       verbose_name=u"回测")
 
     class Meta:
         verbose_name = u"回测订单"

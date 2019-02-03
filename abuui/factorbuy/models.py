@@ -20,7 +20,6 @@ class FactorBuy(models.Model):
     def __str__(self):
         return '策略: %s, 名称: %s' % (self.factor_name, self.name)
 
-
 @python_2_unicode_compatible
 class FactorBuyBreakXd(FactorBuy):
     """

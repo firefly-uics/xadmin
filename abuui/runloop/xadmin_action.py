@@ -41,15 +41,15 @@ class RunloopAction(BaseActionView):
             choice_symbols = []
 
             for factor_buy in obj.factor_buys.all():
-                buy_factors.append(eval(factor_buy.get_class_name_display()))
+                buy_factors.append(eval(factor_buy.class_name))
 
             for factor_sell in obj.factor_sells.all():
-                sell_factors.append(eval(factor_sell.get_class_name_display()))
+                sell_factors.append(eval(factor_sell.class_name))
 
             for stock in stocks:
                 choice_symbols.append(stock.symbol)
 
-            """
+            """ 
                 8.1.4 对多支股票进行择时
                 :return:
             """

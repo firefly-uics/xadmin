@@ -7,6 +7,7 @@ from abupy import AbuFactorBuyBreak, AbuBenchmark, AbuCapital, ABuPickTimeExecut
     AbuFactorCloseAtrNStop, \
     AbuFactorPreAtrNStop, AbuFactorSellBreak, ABuGridHelper, GridSearch, ABuFileUtil, WrsmScorer, EMarketSourceType,AbuDoubleMaBuy, AbuDoubleMaSell
 
+from abupy import AbuKellyPosition
 from xadmin.plugins.actions import BaseActionView
 from .models import Orders
 
@@ -41,7 +42,10 @@ class RunloopAction(BaseActionView):
             choice_symbols = []
 
             for factor_buy in obj.factor_buys.all():
-                buy_factors.append(eval(factor_buy.class_name))
+                buy_obj = eval(factor_buy.class_name)
+                buy_obj['position'] = AbuKellyPosition
+
+                buy_factors.append(buy_obj)
 
             for factor_sell in obj.factor_sells.all():
                 sell_factors.append(eval(factor_sell.class_name))

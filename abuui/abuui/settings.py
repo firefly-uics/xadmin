@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'factorsell',
     'runloop',
     'gridsearch',
+    'position',
 
 ]
 

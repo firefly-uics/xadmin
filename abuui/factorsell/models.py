@@ -104,5 +104,31 @@ class FactorSellAtrNStop(FactorSell):
         return 'AbuFactorAtrNStop'
 
 
+@python_2_unicode_compatible
+class FactorSellCloseAtrN(FactorSell):
+    """
+    利润保护止盈策略：
+      1. 买入后最大收益价格 - 今日价格 > 一定收益
+      2. 买入后最大收益价格 - 今日价格 < close_atr_n * 当日atr
+      3. 当买入有一定收益后，如果下跌幅度超过close_atr_n乘以当日atr->保护止盈卖出
+    """
+    close_atr_n = models.FloatField(verbose_name=u"止盈(收益下跌超过close_atr_n乘以当日atr->保护止盈)",
+                                    validators=[MinValueValidator(0.1), MaxValueValidator(10.0)],
+                                    default=1.5, )
+
+    class Meta:
+        verbose_name = u"保护止盈"
+        verbose_name_plural = verbose_name
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.class_name = "{'close_atr_n': %f, 'class': %s}" % (self.close_atr_n, self.delegate_class())
+        self.factor_name = self._meta.verbose_name
+        super().save(force_insert, force_update, using, update_fields)
+
+    def __str__(self):
+        return '策略:%s, 名称: %s, 利润保护止盈n= %f ' % (self._meta.verbose_name, self.name, self.close_atr_n)
+
+    def delegate_class(self):
+        return 'AbuFactorCloseAtrNStop'
 
 

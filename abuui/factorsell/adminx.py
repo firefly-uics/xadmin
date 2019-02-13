@@ -3,7 +3,8 @@ from __future__ import absolute_import
 from django.utils.translation import ugettext as _
 
 import xadmin
-from .models import FactorSellBreakXd, FactorSellDoubleMa, FactorSellAtrNStop, FactorSellCloseAtrN
+from .models import FactorSellBreakXd, FactorSellDoubleMa, FactorSellAtrNStop, FactorSellCloseAtrN, \
+    FactorSellPreAtrNStop
 
 ACTION_NAME = {
     'add': _('Can add %s'),
@@ -54,7 +55,7 @@ class FactorSellDoubleMaAdmin(object):
 
 @xadmin.sites.register(FactorSellAtrNStop)
 class FactorSellAtrNStopAdmin(object):
-    list_display = ("name", "stop_loss_n", "stop_win_n", )
+    list_display = ("name", "stop_loss_n", "stop_win_n",)
 
     list_display_links = ("name",)
 
@@ -70,9 +71,29 @@ class FactorSellAtrNStopAdmin(object):
 
     reversion_enable = True
 
+
 @xadmin.sites.register(FactorSellCloseAtrN)
 class FactorSellCloseAtrNAdmin(object):
-    list_display = ("name", "close_atr_n", )
+    list_display = ("name", "close_atr_n",)
+
+    list_display_links = ("name",)
+
+    search_fields = ["name"]
+
+    list_filter = [
+        "name"
+    ]
+
+    list_quick_filter = [{"field": "name", "limit": 10}]
+
+    search_fields = ["name"]
+
+    reversion_enable = True
+
+
+@xadmin.sites.register(FactorSellPreAtrNStop)
+class FactorSellPreAtrNStopAdmin(object):
+    list_display = ("name", "pre_atr_n",)
 
     list_display_links = ("name",)
 

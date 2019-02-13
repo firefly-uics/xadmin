@@ -6,7 +6,6 @@ from django.db import models
 from django.conf import settings
 from django.utils.encoding import python_2_unicode_compatible
 
-
 AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 
@@ -93,12 +92,14 @@ class FactorSellAtrNStop(FactorSell):
         verbose_name_plural = verbose_name
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        self.class_name = "{'stop_loss_n': %f, 'stop_win_n': %f, 'class': %s}" % (self.stop_loss_n, self.stop_win_n, self.delegate_class())
+        self.class_name = "{'stop_loss_n': %f, 'stop_win_n': %f, 'class': %s}" % (
+        self.stop_loss_n, self.stop_win_n, self.delegate_class())
         self.factor_name = self._meta.verbose_name
         super().save(force_insert, force_update, using, update_fields)
 
     def __str__(self):
-        return '策略:%s, 名称: %s, n atr止盈 %f 止损 %f ' % (self._meta.verbose_name, self.name, self.stop_loss_n, self.stop_win_n)
+        return '策略:%s, 名称: %s, n atr止盈 %f 止损 %f ' % (
+        self._meta.verbose_name, self.name, self.stop_loss_n, self.stop_win_n)
 
     def delegate_class(self):
         return 'AbuFactorAtrNStop'
@@ -132,3 +133,28 @@ class FactorSellCloseAtrN(FactorSell):
         return 'AbuFactorCloseAtrNStop'
 
 
+@python_2_unicode_compatible
+class FactorSellPreAtrNStop(FactorSell):
+    """
+    风险控制止损策略：
+      1. 单日最大跌幅n倍atr止损
+      2. 当今日价格下跌幅度 > 当日atr 乘以 pre_atr_n（下跌止损倍数）卖出操作
+    """
+    pre_atr_n = models.FloatField(verbose_name=u"止损(当今天价格开始剧烈下跌，采取果断平仓措施)",
+                                  validators=[MinValueValidator(0.1), MaxValueValidator(10.0)],
+                                  default=1.5, )
+
+    class Meta:
+        verbose_name = u"风险止损"
+        verbose_name_plural = verbose_name
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.class_name = "{'pre_atr_n': %f, 'class': %s}" % (self.pre_atr_n, self.delegate_class())
+        self.factor_name = self._meta.verbose_name
+        super().save(force_insert, force_update, using, update_fields)
+
+    def __str__(self):
+        return '策略:%s, 名称: %s, 风险控制止损n= %f ' % (self._meta.verbose_name, self.name, self.pre_atr_n)
+
+    def delegate_class(self):
+        return 'AbuFactorPreAtrNStop'

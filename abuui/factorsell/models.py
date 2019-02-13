@@ -93,13 +93,13 @@ class FactorSellAtrNStop(FactorSell):
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.class_name = "{'stop_loss_n': %f, 'stop_win_n': %f, 'class': %s}" % (
-        self.stop_loss_n, self.stop_win_n, self.delegate_class())
+            self.stop_loss_n, self.stop_win_n, self.delegate_class())
         self.factor_name = self._meta.verbose_name
         super().save(force_insert, force_update, using, update_fields)
 
     def __str__(self):
         return '策略:%s, 名称: %s, n atr止盈 %f 止损 %f ' % (
-        self._meta.verbose_name, self.name, self.stop_loss_n, self.stop_win_n)
+            self._meta.verbose_name, self.name, self.stop_loss_n, self.stop_win_n)
 
     def delegate_class(self):
         return 'AbuFactorAtrNStop'
@@ -158,3 +158,37 @@ class FactorSellPreAtrNStop(FactorSell):
 
     def delegate_class(self):
         return 'AbuFactorPreAtrNStop'
+
+
+@python_2_unicode_compatible
+class FactorSellNDay(FactorSell):
+    """
+    持有N天后卖出策略：
+      卖出策略，不管交易现在什么结果，买入后只持有N天
+      需要与特定\'买入策略\'形成配合
+      单独使用N天卖出策略意义不大
+    """
+    SELL_TODAY = (
+        (True, u"N天后当天卖出"),
+        (False, u"N天后隔天卖出"),
+    )
+
+    sell_n = models.IntegerField(verbose_name=u"N天",
+                                 default=1, )
+
+    is_sell_today = models.BooleanField(verbose_name=u"当天隔天", choices=SELL_TODAY, )
+
+    class Meta:
+        verbose_name = u"N天卖出"
+        verbose_name_plural = verbose_name
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.class_name = "{'sell_n': %f,'is_sell_today':%s, 'class': %s}" % (self.sell_n, self.is_sell_today, self.delegate_class())
+        self.factor_name = self._meta.verbose_name
+        super().save(force_insert, force_update, using, update_fields)
+
+    def __str__(self):
+        return '策略:%s, 名称: %s, 持有%s天%s卖出 ' % (self._meta.verbose_name, self.name, self.sell_n, u'当天' if self.is_sell_today else u'隔天')
+
+    def delegate_class(self):
+        return 'AbuFactorSellNDay'

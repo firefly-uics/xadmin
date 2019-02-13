@@ -28,7 +28,7 @@ class RunLoopGroupAdmin(object):
 
     reversion_enable = True
 
-    style_fields = {"factor_buys": "checkbox-inline", "factor_sells": "checkbox-inline"}
+    style_fields = {"factor_buys": "checkbox-inline", "factor_sells": "checkbox-inline", "positions": "radio-inline"}
 
     actions = [RunloopAction]
 

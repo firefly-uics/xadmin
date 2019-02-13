@@ -10,6 +10,8 @@ from base.models import Stock, RunBase
 from factorbuy.models import FactorBuy
 from factorsell.models import FactorSell
 
+from position.models import Position
+
 AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 
@@ -19,6 +21,9 @@ class RunLoopGroup(RunBase):
         FactorBuy, verbose_name=u'买策略组合', blank=False, related_name='factor_buy_groups')
     factor_sells = models.ManyToManyField(
         FactorSell, verbose_name=u'卖策略组合', blank=False, related_name='factor_sell_groups')
+
+    positions = models.ForeignKey(
+        Position, verbose_name=u'仓位管理', null=True, blank=True, on_delete=models.SET_NULL)
 
     class Meta:
         verbose_name = u"回测"

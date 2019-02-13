@@ -116,3 +116,31 @@ class FactorBuyWD(FactorBuy):
 
     def __str__(self):
         return '策略:%s, 名称: %s, 日胜率%s,%s,%s均值回复买入' % (self._meta.verbose_name, self.name, self.buy_dw, self.buy_dwm, self.dw_period)
+
+@python_2_unicode_compatible
+class WeekMonthBuy(FactorBuy):
+    BUY_MONTH = (
+        (True, u"定期一个月"),
+        (False, u"定期一个周"),
+    )
+
+    """
+    固定周期买入策略：
+      根据参数每周买入一次或者每一个月买入一次
+      需要与特定\'选股策略\'和\'卖出策略\'形成配合\'
+      单独使用固定周期买入策略意义不大
+    """
+    is_buy_month_box = models.BooleanField(verbose_name=u"定期时长", choices=BUY_MONTH,)
+
+    class Meta:
+        verbose_name = u"定期买入"
+        verbose_name_plural = verbose_name
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.class_name = "{'is_buy_month_box': %s, 'class': AbuWeekMonthBuy}" % (self.is_buy_month_box, )
+        self.factor_name = self._meta.verbose_name
+        super().save(force_insert, force_update, using, update_fields)
+
+    def __str__(self):
+        return '策略:%s, 名称: %s, %s买入一次' % (self._meta.verbose_name, self.name, u'每一月' if self.is_buy_month_box else u'每一周')
+

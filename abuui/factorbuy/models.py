@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from django.conf import settings
@@ -19,6 +20,7 @@ class FactorBuy(models.Model):
 
     def __str__(self):
         return '策略: %s, 名称: %s' % (self.factor_name, self.name)
+
 
 @python_2_unicode_compatible
 class FactorBuyBreakXd(FactorBuy):
@@ -65,6 +67,7 @@ class FactorBuyDoubleMa(FactorBuy):
     def __str__(self):
         return '策略:%s, 名称: %s, 短周期: %s, 长周期: %s' % (self._meta.verbose_name, self.name, self.slow_int, self.fast_int)
 
+
 @python_2_unicode_compatible
 class FactorBuySDBreak(FactorBuyBreakXd):
     """
@@ -86,3 +89,30 @@ class FactorBuySDBreak(FactorBuyBreakXd):
     def __str__(self):
         return '策略:%s, 名称: %s, %s 拟合 %s 天趋势突破参照大盘' % (self._meta.verbose_name, self.name, self.poly, self.xd)
 
+
+@python_2_unicode_compatible
+class FactorBuyWD(FactorBuy):
+    """
+    日胜率均值回复策略：
+        1. 默认以40天为周期(8周)结合涨跌阀值计算周几适合买入
+        2. 回测运行中每一月重新计算一次上述的周几适合买入
+        3. 在策略日任务中买入信号为：昨天下跌，今天开盘也下跌，且明天是计算出来的上涨概率大的'周几'
+    """
+    buy_dw = models.FloatField(verbose_name=u"胜率", default=0.55,
+                               validators=[MinValueValidator(0.5), MaxValueValidator(0.99)],)
+    buy_dwm = models.FloatField(verbose_name=u"系数", validators=[MinValueValidator(0.5), MaxValueValidator(1.0)],
+                                default=0.618)
+    dw_period = models.IntegerField(verbose_name=u"周期", validators=[MinValueValidator(20), MaxValueValidator(120), ],
+                                    default=40)
+
+    class Meta:
+        verbose_name = u"周涨胜率"
+        verbose_name_plural = verbose_name
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.class_name = "{'buy_dw': %f, 'buy_dwm': %f, 'dw_period': %d, 'class': AbuFactorBuyWD}" % (self.buy_dw, self.buy_dwm, self.dw_period)
+        self.factor_name = self._meta.verbose_name
+        super().save(force_insert, force_update, using, update_fields)
+
+    def __str__(self):
+        return '策略:%s, 名称: %s, 日胜率%s,%s,%s均值回复买入' % (self._meta.verbose_name, self.name, self.buy_dw, self.buy_dwm, self.dw_period)

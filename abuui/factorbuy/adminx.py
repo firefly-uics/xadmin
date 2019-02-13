@@ -4,7 +4,7 @@ from django.utils.translation import ugettext as _
 
 import xadmin
 from .models import FactorBuyBreakXd, FactorBuyDoubleMa, \
-    FactorBuySDBreak
+    FactorBuySDBreak, FactorBuyWD
 
 ACTION_NAME = {
     'add': _('Can add %s'),
@@ -56,6 +56,25 @@ class FactorBuyDoubleMaAdmin(object):
 @xadmin.sites.register(FactorBuySDBreak)
 class FactorBuySDBreakAdmin(object):
     list_display = ("name", "xd", "poly")
+
+    list_display_links = ("name",)
+
+    search_fields = ["name"]
+
+    list_filter = [
+        "name"
+    ]
+
+    list_quick_filter = [{"field": "name", "limit": 10}]
+
+    search_fields = ["name"]
+
+    reversion_enable = True
+
+
+@xadmin.sites.register(FactorBuyWD)
+class FactorBuyWDAdmin(object):
+    list_display = ("name", "buy_dw", "buy_dwm", 'dw_period',)
 
     list_display_links = ("name",)
 

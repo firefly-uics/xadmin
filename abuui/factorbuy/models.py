@@ -99,7 +99,7 @@ class FactorBuyWD(FactorBuy):
         3. 在策略日任务中买入信号为：昨天下跌，今天开盘也下跌，且明天是计算出来的上涨概率大的'周几'
     """
     buy_dw = models.FloatField(verbose_name=u"胜率", default=0.55,
-                               validators=[MinValueValidator(0.5), MaxValueValidator(0.99)],)
+                               validators=[MinValueValidator(0.5), MaxValueValidator(0.99)], )
     buy_dwm = models.FloatField(verbose_name=u"系数", validators=[MinValueValidator(0.5), MaxValueValidator(1.0)],
                                 default=0.618)
     dw_period = models.IntegerField(verbose_name=u"周期", validators=[MinValueValidator(20), MaxValueValidator(120), ],
@@ -110,12 +110,15 @@ class FactorBuyWD(FactorBuy):
         verbose_name_plural = verbose_name
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        self.class_name = "{'buy_dw': %f, 'buy_dwm': %f, 'dw_period': %d, 'class': AbuFactorBuyWD}" % (self.buy_dw, self.buy_dwm, self.dw_period)
+        self.class_name = "{'buy_dw': %f, 'buy_dwm': %f, 'dw_period': %d, 'class': AbuFactorBuyWD}" % (
+            self.buy_dw, self.buy_dwm, self.dw_period)
         self.factor_name = self._meta.verbose_name
         super().save(force_insert, force_update, using, update_fields)
 
     def __str__(self):
-        return '策略:%s, 名称: %s, 日胜率%s,%s,%s均值回复买入' % (self._meta.verbose_name, self.name, self.buy_dw, self.buy_dwm, self.dw_period)
+        return '策略:%s, 名称: %s, 日胜率%s,%s,%s均值回复买入' % (
+            self._meta.verbose_name, self.name, self.buy_dw, self.buy_dwm, self.dw_period)
+
 
 @python_2_unicode_compatible
 class WeekMonthBuy(FactorBuy):
@@ -130,17 +133,49 @@ class WeekMonthBuy(FactorBuy):
       需要与特定\'选股策略\'和\'卖出策略\'形成配合\'
       单独使用固定周期买入策略意义不大
     """
-    is_buy_month_box = models.BooleanField(verbose_name=u"定期时长", choices=BUY_MONTH,)
+    is_buy_month_box = models.BooleanField(verbose_name=u"定期时长", choices=BUY_MONTH, )
 
     class Meta:
         verbose_name = u"定期买入"
         verbose_name_plural = verbose_name
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        self.class_name = "{'is_buy_month_box': %s, 'class': AbuWeekMonthBuy}" % (self.is_buy_month_box, )
+        self.class_name = "{'is_buy_month_box': %s, 'class': AbuWeekMonthBuy}" % (self.is_buy_month_box,)
         self.factor_name = self._meta.verbose_name
         super().save(force_insert, force_update, using, update_fields)
 
     def __str__(self):
-        return '策略:%s, 名称: %s, %s买入一次' % (self._meta.verbose_name, self.name, u'每一月' if self.is_buy_month_box else u'每一周')
+        return '策略:%s, 名称: %s, %s买入一次' % (
+            self._meta.verbose_name, self.name, u'每一月' if self.is_buy_month_box else u'每一周')
 
+
+@python_2_unicode_compatible
+class DownUpTrend(FactorBuy):
+    """
+    整个择时周期分成两部分，长的为长线择时，短的为短线择时：
+      1. 寻找长线下跌的股票，比如一个季度(4个月)整体趋势为下跌趋势
+      2. 短线走势上涨的股票，比如一个月整体趋势为上涨趋势，
+      3. 最后使用海龟突破的N日突破策略作为策略最终买入信号
+    """
+    xd = models.SmallIntegerField(verbose_name=u"短线周期", choices=[(i, "%s 天" % i) for i in range(5, 120, 5)],
+                                  validators=[MinValueValidator(5), MaxValueValidator(120), ], default=20)
+    past_factor = models.SmallIntegerField(verbose_name=u"长线乘数(长线乘数：短线基础 x 长线乘数 = 长线周期)",
+                                           choices=[(i, "%s " % i) for i in range(5, 120, 5)],
+                                           validators=[MinValueValidator(1), MaxValueValidator(10), ], default=4)
+    down_deg_threshold = models.SmallIntegerField(verbose_name=u"角度阀值(拟合趋势角度阀值：如-2,-3,-4)",
+                                                  validators=[MinValueValidator(-10), MaxValueValidator(0), ],
+                                                  choices=[(i, "%s " % i) for i in range(-10, 0, 1)], default=-3)
+
+    class Meta:
+        verbose_name = u"长跌短涨"
+        verbose_name_plural = verbose_name
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.class_name = "{'xd': %d, 'past_factor': %d, 'down_deg_threshold': %d,'class': AbuDownUpTrend}" % (
+            self.xd, self.past_factor, self.down_deg_threshold)
+        self.factor_name = self._meta.verbose_name
+        super().save(force_insert, force_update, using, update_fields)
+
+    def __str__(self):
+        return '策略:%s, 名称: %s, 长线 %s 下跌短线 %s 上涨角度 %s' % (
+            self._meta.verbose_name, self.name, self.xd, self.past_factor, self.down_deg_threshold)

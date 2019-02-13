@@ -1,10 +1,13 @@
+from abc import abstractmethod
+
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from django.conf import settings
 from django.utils.encoding import python_2_unicode_compatible
 
-AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
+AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 
 # Create your models here.
@@ -20,6 +23,10 @@ class FactorSell(models.Model):
 
     def __str__(self):
         return '策略: %s, 名称: %s' % (self.factor_name, self.name)
+
+    def delegate_class(self):
+        """子类因子所委托的具体因子类"""
+        pass
 
 
 @python_2_unicode_compatible
@@ -64,5 +71,38 @@ class FactorSellDoubleMa(FactorSell):
 
     def __str__(self):
         return '策略:%s, 名称: %s, 短周期: %s, 长周期: %s' % (self._meta.verbose_name, self.name, self.slow_int, self.fast_int)
+
+
+@python_2_unicode_compatible
+class FactorSellAtrNStop(FactorSell):
+    """
+    止盈策略 & 止损策略：
+      1. 真实波幅atr作为最大止盈和最大止损的常数值
+      2. 当stop_loss_n 乘以 当日atr > 买入价格 － 当日收盘价格->止损卖出
+      3. 当stop_win_n 乘以 当日atr < 当日收盘价格 －买入价格->止盈卖出
+    """
+    stop_loss_n = models.FloatField(verbose_name=u"止损(stop_loss_n乘以当日atr大于买价减close->止损)",
+                                    validators=[MinValueValidator(0.1), MaxValueValidator(10.0)],
+                                    default=1.0, )
+    stop_win_n = models.FloatField(verbose_name=u"止盈(stop_win_n乘以当日atr小于close减买价->止盈)",
+                                   validators=[MinValueValidator(0.1), MaxValueValidator(10.0)],
+                                   default=3.0, )
+
+    class Meta:
+        verbose_name = u"止盈止损"
+        verbose_name_plural = verbose_name
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.class_name = "{'stop_loss_n': %f, 'stop_win_n': %f, 'class': %s}" % (self.stop_loss_n, self.stop_win_n, self.delegate_class())
+        self.factor_name = self._meta.verbose_name
+        super().save(force_insert, force_update, using, update_fields)
+
+    def __str__(self):
+        return '策略:%s, 名称: %s, n atr止盈 %f 止损 %f ' % (self._meta.verbose_name, self.name, self.stop_loss_n, self.stop_win_n)
+
+    def delegate_class(self):
+        return 'AbuFactorAtrNStop'
+
+
 
 

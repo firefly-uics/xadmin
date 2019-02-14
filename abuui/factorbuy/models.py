@@ -52,7 +52,7 @@ class FactorBuyDoubleMa(FactorBuy):
         3. 自适应动态慢线，不需要输入慢线值，根据走势震荡套利空间，寻找合适的ma慢线
         4. 自适应动态快线，不需要输入快线值，根据慢线以及大盘走势，寻找合适的ma快线
     """
-    slow_int = models.IntegerField(verbose_name=u"慢线(-1:为自动)")
+    slow_int = models.IntegerField(verbose_name=u"慢线")
     fast_int = models.IntegerField(verbose_name=u"快线(-1:为自动)")
 
     class Meta:

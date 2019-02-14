@@ -74,7 +74,7 @@ class AtrPosPosition(Position):
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.class_name = "{'atr_pos_base': %f,'atr_base_price': %f, 'class': %s}" % (
-            self.atr_pos_base, self.atr_base_price,  self.delegate_class())
+            self.atr_pos_base, self.atr_base_price, self.delegate_class())
         self.position_name = self._meta.verbose_name
         super().save(force_insert, force_update, using, update_fields)
 
@@ -84,3 +84,38 @@ class AtrPosPosition(Position):
 
     def delegate_class(self):
         return 'AbuAtrPosition'
+
+
+@python_2_unicode_compatible
+class PtPosition(Position):
+    """
+    价格位置仓位管理策略：
+      针对均值回复类型策略的仓位管理策略
+      根据买入价格在之前一段时间的价格位置来决策仓位大小
+      假设过去一段时间的价格为[10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+      如果当前买入价格为2元：则买入仓位配比很高(认为均值回复有很大向上空间)
+      如果当前买入价格为9元：则买入仓位配比很低(认为均值回复向上空间比较小)
+    """
+    pos_base = models.FloatField(verbose_name=u"基配",
+                                 validators=[MinValueValidator(0.00001), MaxValueValidator(1.0)],
+                                 default=0.1, )
+    past_day_cnt = models.SmallIntegerField(verbose_name=u"参考天数",
+                                            choices=[(i, "%s " % i) for i in range(5, 250, 1)],
+                                            validators=[MinValueValidator(5), MaxValueValidator(250), ], default=20)
+
+    class Meta:
+        verbose_name = u"价格位置"
+        verbose_name_plural = verbose_name
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.class_name = "{'pos_base': %f,'past_day_cnt': %f, 'class': %s}" % (
+            self.pos_base, self.past_day_cnt, self.delegate_class())
+        self.position_name = self._meta.verbose_name
+        super().save(force_insert, force_update, using, update_fields)
+
+    def __str__(self):
+        return '策略名称: %s, 价格位置基仓比例:%s 参考天数:%s' % (
+            self.name, self.pos_base, self.past_day_cnt)
+
+    def delegate_class(self):
+        return 'AbuPtPosition'

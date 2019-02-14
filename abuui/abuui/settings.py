@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'runloop',
     'gridsearch',
     'position',
+    'pickstock',
 
 ]
 

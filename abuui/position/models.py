@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from django.conf import settings
@@ -20,6 +21,10 @@ class Position(models.Model):
     def __str__(self):
         return '仓位策略: %s, 名称: %s' % (self.position_name, self.name)
 
+    def delegate_class(self):
+        """子类因子所委托的具体因子类"""
+        pass
+
 
 @python_2_unicode_compatible
 class KellyPosition(Position):
@@ -35,9 +40,47 @@ class KellyPosition(Position):
         verbose_name_plural = verbose_name
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        self.class_name = "{'win_rate': %s,'gains_mean': %s,'losses_mean': %s, 'class': AbuKellyPosition}" % (self.win_rate, self.gains_mean, self.losses_mean)
+        self.class_name = "{'win_rate': %s,'gains_mean': %s,'losses_mean': %s, 'class': %s}" % (
+            self.win_rate, self.gains_mean, self.losses_mean, self.delegate_class())
         self.position_name = self._meta.verbose_name
         super().save(force_insert, force_update, using, update_fields)
 
     def __str__(self):
-        return '策略名称: %s, 胜率: %s, 平均获利期望: %s, 平均亏损期望: %s' % (self.name, self.win_rate, self.gains_mean, self.losses_mean)
+        return '策略名称: %s, 胜率: %s, 平均获利期望: %s, 平均亏损期望: %s' % (
+            self.name, self.win_rate, self.gains_mean, self.losses_mean)
+
+    def delegate_class(self):
+        return 'AbuKellyPosition'
+
+
+@python_2_unicode_compatible
+class AtrPosPosition(Position):
+    """
+    atr资金仓位管理策略：
+      默认的仓位资金管理全局策略
+      根据决策买入当天的价格波动决策资金仓位配比
+      注意不同于卖策，选股，一个买入因子只能有唯一个资金仓位管理策略
+    """
+    atr_pos_base = models.FloatField(verbose_name=u"基配",
+                                     validators=[MinValueValidator(0.00001), MaxValueValidator(1.0)],
+                                     default=0.1, )
+    atr_base_price = models.SmallIntegerField(verbose_name=u"常价",
+                                              choices=[(i, "%s " % i) for i in range(12, 20, 1)],
+                                              validators=[MinValueValidator(12), MaxValueValidator(20), ], default=15)
+
+    class Meta:
+        verbose_name = u"atr资管"
+        verbose_name_plural = verbose_name
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.class_name = "{'atr_pos_base': %f,'atr_base_price': %f, 'class': %s}" % (
+            self.atr_pos_base, self.atr_base_price,  self.delegate_class())
+        self.position_name = self._meta.verbose_name
+        super().save(force_insert, force_update, using, update_fields)
+
+    def __str__(self):
+        return '策略名称: %s, atr资管仓位基数:%s 常数价格:%s' % (
+            self.name, self.atr_pos_base, self.atr_base_price)
+
+    def delegate_class(self):
+        return 'AbuAtrPosition'

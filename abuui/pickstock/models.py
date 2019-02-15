@@ -109,3 +109,40 @@ class ShiftDistancePickStock(PickStock):
 
     def delegate_class(self):
         return 'AbuPickStockShiftDistance'
+
+@python_2_unicode_compatible
+class PickStockNTopPickStock(PickStock):
+    """
+    涨跌幅top N选股因子策略：
+      选股周期上对多只股票涨跌幅进行排序，选取top n个股票做为交易目标：
+      (只对在股池中选定的symbol序列生效，对全市场回测暂时不生效)
+
+      默认值为正：即选取涨幅最高的n_top个股票
+      可设置为负：即选取跌幅最高的n_top个股票
+    """
+
+    DIRECTION_TOP_SELECT = (
+        (1, u"正(涨幅)"),
+        (-1, u"负(跌幅)"),
+    )
+
+    n_top = models.IntegerField(verbose_name=u"TOP N:", default=3,
+                                validators=[MinValueValidator(1), MaxValueValidator(10), ], )
+    direction_top = models.IntegerField(verbose_name=u"选取方向", choices=DIRECTION_TOP_SELECT, default=1)
+
+    class Meta:
+        verbose_name = u"top N涨跌"
+        verbose_name_plural = verbose_name
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.class_name = "{'xd': %f,'reversed': %s,'n_top': %d,'direction_top': %d, 'class': %s}" % (
+            self.xd, self.reversed, self.n_top, self.direction_top, self.delegate_class())
+        self.pick_stock_name = self._meta.verbose_name
+        super().save(force_insert, force_update, using, update_fields)
+
+    def __str__(self):
+        return '策略名称: %s, 涨跌幅选股n_top:%s,方向:%s,xd:%s,反转:%s ' % (
+            self.name, self.n_top, self.direction_top, self.xd, self.reversed)
+
+    def delegate_class(self):
+        return 'AbuPickStockNTop'

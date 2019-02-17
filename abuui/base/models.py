@@ -7,11 +7,10 @@ CN_MARKET = (
     ('SH', u"沪市"),
     ('SZ', u"深市"),
 )
-
 # Create your models here.
 @python_2_unicode_compatible
 class Stock(models.Model):
-    co_name = models.CharField(max_length=64, verbose_name=u'名称')
+    co_name = models.CharField(max_length=16, verbose_name=u'名称')
     symbol = models.CharField(max_length=64, verbose_name=u'编号')
     market = models.CharField(max_length=64, choices=CN_MARKET, verbose_name=u'市场')
     # asset = models.CharField(max_length=64, verbose_name=u'价值')

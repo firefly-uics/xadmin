@@ -31,7 +31,7 @@ def init():
 
     print(stock_pd.tail())
 
-    stock_pd['symbol_str'] = stock_pd['symbol']
+    # stock_pd['symbol_str'] = stock_pd['symbol']
 
     stock_pd['symbol'].astype('str')
 
@@ -39,7 +39,7 @@ def init():
 
     stock_pd['symbol'] = stock_pd['symbol'].apply(lambda x: str(x).rjust(6, '0'))
     print(stock_pd.tail())
-    stock_pd.to_sql('test_stock', create_engine(), if_exists='append', index=False, chunksize=2000)
+    stock_pd.to_sql('base_stock', create_engine(), if_exists='append', index=False, chunksize=2000)
 
 
 init()

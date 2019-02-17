@@ -28,6 +28,7 @@ cd demo_app
 ./manage.py migrate
 // 启动服务
 ./manage.py runserver
+// 备份数据./manage.py dumpdata base > base/fixtures/initial_data.json
 // 初始化数据
 ./manage.py loaddata initial_data.json
 ```

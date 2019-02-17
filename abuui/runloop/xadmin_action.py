@@ -9,6 +9,14 @@ from abupy import AbuFactorBuyBreak, AbuBenchmark, AbuCapital, ABuPickTimeExecut
     AbuDoubleMaBuy, AbuDoubleMaSell, AbuFactorBuyWD, AbuWeekMonthBuy, AbuDownUpTrend, AbuFactorSellNDay
 
 from abupy import AbuKellyPosition
+
+from abupy import AbuPickRegressAngMinMax, AbuPickStockPriceMinMax, AbuPickStockShiftDistance, AbuPickStockNTop
+
+from abupy.UtilBu import ABuProgress
+
+from abupy.CoreBu.ABu import run_loop_back
+
+from base.models import Stock
 from xadmin.plugins.actions import BaseActionView
 from .models import Orders
 
@@ -34,6 +42,8 @@ class RunloopAction(BaseActionView):
         self.lock.acquire()
 
         if obj:
+            self.console_info = []
+
             print('Thread_id', obj)
 
             stocks = obj.stocks.all()
@@ -41,6 +51,7 @@ class RunloopAction(BaseActionView):
             buy_factors = []
             sell_factors = []
             choice_symbols = []
+            stock_pickers = []
 
             for factor_buy in obj.factor_buys.all():
                 buy_obj = eval(factor_buy.class_name)
@@ -53,6 +64,9 @@ class RunloopAction(BaseActionView):
 
             for stock in stocks:
                 choice_symbols.append(stock.symbol)
+
+            for pick_stock in obj.pick_stocks.all():
+                stock_pickers.append(eval(pick_stock.class_name))
 
             """ 
                 8.1.4 对多支股票进行择时
@@ -67,16 +81,28 @@ class RunloopAction(BaseActionView):
             # buy_factors = [{'xd': 60, 'class': AbuFactorBuyBreak},
             #                {'xd': 42, 'class': AbuFactorBuyBreak}]
 
-            capital = AbuCapital(obj.read_cash, benchmark)
-            orders_pd, action_pd, all_fit_symbols_cnt = ABuPickTimeExecute.do_symbols_with_same_factors(choice_symbols,
-                                                                                                        benchmark,
-                                                                                                        buy_factors,
-                                                                                                        sell_factors,
-                                                                                                        capital,
-                                                                                                        show=False)
+            # orders_pd, action_pd, all_fit_symbols_cnt = ABuPickTimeExecute.do_symbols_with_same_factors(choice_symbols,
+            #                                                                                             benchmark,
+            #                                                                                             buy_factors,
+            #                                                                                             sell_factors,
+            #                                                                                             capital,
+            #                                                                                             show=False)
 
-            metrics = AbuMetricsBase(orders_pd, action_pd, capital, benchmark, log=self.print_to_str)
+            abu_result_tuple, _ = run_loop_back(obj.read_cash,
+                                                buy_factors,
+                                                sell_factors,
+                                                stock_pickers,
+                                                choice_symbols=choice_symbols,
+                                                start=str(obj.start),
+                                                end=str(obj.end))
+            if abu_result_tuple is None:
+                return
+
+            metrics = AbuMetricsBase(*abu_result_tuple, log=self.print_to_str)
+
             metrics.fit_metrics()
+
+            orders_pd = abu_result_tuple.orders_pd
 
             if orders_pd is None:
                 obj.status = 'done'
@@ -84,13 +110,19 @@ class RunloopAction(BaseActionView):
                 self.lock.release()
                 return
 
-            for stock in stocks:
-                # stock = Stock.objects.filter(symbol=s.symbol)
-                print(('%s%s' % (stock.market.lower(), stock.symbol)))
+            symbols = orders_pd['symbol'].unique()
+
+            for symbol in symbols:
+                stock = Stock.objects.get(symbol=symbol)
+
+                print('stock', stock)
+
                 orders_pd.loc[
-                    orders_pd['symbol'] == ('%s%s' % (stock.market.lower(), stock.symbol)), 'stock_id'] = stock.id
+                    orders_pd['symbol'] == ('%s' % stock.symbol), 'stock_id'] = stock.id
 
             orders_pd['run_loop_group_id'] = obj.id
+
+            print('orders_pd', orders_pd.tail())
 
             for index, row in orders_pd.iterrows():
                 dictObject = row.to_dict()

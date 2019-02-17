@@ -46,4 +46,4 @@ class RunBase(models.Model):
     read_cash = models.IntegerField(verbose_name=u"初始化资金")
 
     stocks = models.ManyToManyField(
-        Stock, verbose_name=u'股票组合', blank=False, related_name='stock_groups')
+        Stock, verbose_name=u'股票组合', blank=True, related_name='stock_groups')

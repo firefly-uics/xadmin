@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+from django.forms import ModelMultipleChoiceField
 from django.utils.translation import ugettext as _
 
 import xadmin
@@ -14,6 +15,18 @@ ACTION_NAME = {
     'view': _('Can view %s'),
 }
 
+def get_stock_name(p):
+    action = p.codename.split('_')[0]
+    if action in ACTION_NAME:
+        return ACTION_NAME[action] % str(p.content_type)
+    else:
+        return p.co_name
+
+
+class StockModelMultipleChoiceField(ModelMultipleChoiceField):
+
+    def label_from_instance(self, p):
+        return get_stock_name(p)
 
 @xadmin.sites.register(RunLoopGroup)
 class RunLoopGroupAdmin(object):
@@ -30,6 +43,13 @@ class RunLoopGroupAdmin(object):
 
     style_fields = {"factor_buys": "checkbox-inline", "factor_sells": "checkbox-inline", "positions": "radio-inline",
                     "stocks": "m2m_transfer"}
+
+    # def get_field_attrs(self, db_field, **kwargs):
+    #     print("db_field", db_field)
+    #     attrs = super(RunLoopGroupAdmin, self).get_field_attrs(db_field, **kwargs)
+    #     if db_field.name == 'stocks':
+    #         attrs['form_class'] = StockModelMultipleChoiceField
+    #     return attrs
 
     actions = [RunloopAction]
 

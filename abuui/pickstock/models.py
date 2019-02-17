@@ -40,6 +40,47 @@ class PickStock(models.Model):
 
 
 @python_2_unicode_compatible
+class PickRegressAngMinMaxPickStock(PickStock):
+    PRICE_MIN_CK_SELECT = (
+        (True, u"否"),
+        (False, u"是"),
+    )
+
+    """
+    拟合角度选股因子策略：
+      将交易目标前期走势进行线性拟合计算一个角度，选中规则：
+      1. 交易目标前期走势拟合角度 > 最小拟合角度
+      2. 交易目标前期走势拟合角度 < 最大拟合角度
+    """
+
+    ang_min_float = models.IntegerField(verbose_name=u"最小(设定选股角度最小阀值，默认-5):", default=-5, )
+    ang_min_ck = models.BooleanField(verbose_name=u"使用最小阀值", choices=PRICE_MIN_CK_SELECT, )
+
+    ang_max_float = models.IntegerField(verbose_name=u"最大(设定选股角度最大阀值，默认5):", default=5, )
+    ang_max_ck = models.BooleanField(verbose_name=u"使用最大阀值", choices=PRICE_MIN_CK_SELECT, )
+
+    class Meta:
+        verbose_name = u"角度选股"
+        verbose_name_plural = verbose_name
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        ang_min_str = self.ang_min_float if self.ang_min_ck else -np.inf
+        ang_max_str = self.ang_max_float if self.ang_max_ck else np.inf
+
+        self.class_name = "{'xd': %d,'reversed': %s,'threshold_ang_min': %f,'threshold_ang_max': %s, 'class': %s}" % (
+            self.xd, self.reversed, ang_min_str, ang_max_str, self.delegate_class())
+        self.pick_stock_name = self._meta.verbose_name
+        super().save(force_insert, force_update, using, update_fields)
+
+    def __str__(self):
+        return '策略名称: %s, 角度选股最大:%s最小:%s,周期:%s,反转:%s ' % (
+            self.name, self.ang_max_float, self.ang_min_float, self.xd, self.reversed)
+
+    def delegate_class(self):
+        return 'AbuPickRegressAngMinMax'
+
+
+@python_2_unicode_compatible
 class PriceMinMaxPickStock(PickStock):
     PRICE_MIN_CK_SELECT = (
         (True, u"否"),
@@ -87,7 +128,8 @@ class ShiftDistancePickStock(PickStock):
       2. 一年中大波动月数量 < 最大波动月个数
       3. 一年中大波动月数量 > 最小波动月个数
     """
-    threshold_sd = models.FloatField(verbose_name=u"阀值:", default=2.0, validators=[MinValueValidator(1), MaxValueValidator(6), ], )
+    threshold_sd = models.FloatField(verbose_name=u"阀值:", default=2.0,
+                                     validators=[MinValueValidator(1), MaxValueValidator(6), ], )
     min = models.IntegerField(verbose_name=u"范围-小:", default=1,
                               validators=[MinValueValidator(1), MaxValueValidator(10), ], )
     max = models.IntegerField(verbose_name=u"范围-大:", default=4,
@@ -109,6 +151,7 @@ class ShiftDistancePickStock(PickStock):
 
     def delegate_class(self):
         return 'AbuPickStockShiftDistance'
+
 
 @python_2_unicode_compatible
 class PickStockNTopPickStock(PickStock):

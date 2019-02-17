@@ -12,6 +12,8 @@ from factorsell.models import FactorSell
 
 from position.models import Position
 
+from pickstock.models import PickStock
+
 AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 
@@ -24,6 +26,9 @@ class RunLoopGroup(RunBase):
 
     positions = models.ForeignKey(
         Position, verbose_name=u'仓位管理', null=True, blank=True, on_delete=models.SET_NULL)
+
+    pick_stocks = models.ManyToManyField(
+        PickStock, verbose_name=u'选股因子', blank=True, related_name='pick_stock_groups')
 
     class Meta:
         verbose_name = u"回测"

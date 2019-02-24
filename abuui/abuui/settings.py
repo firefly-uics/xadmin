@@ -11,10 +11,10 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+import sys
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
@@ -27,6 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+FIXTURE_DIRS = (os.path.join(BASE_DIR, 'fixtures', ),)  # 注意两个','
 
 # Application definition
 
@@ -49,7 +50,6 @@ INSTALLED_APPS = [
     'gridsearch',
     'position',
     'pickstock',
-
 ]
 
 MIDDLEWARE = [
@@ -82,8 +82,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'abuui.wsgi.application'
 
-
-# Database CREATE DATABASE IF NOT EXISTS abuui DEFAULT CHARSET utf8 COLLATE utf8_general_ci;
+# Database CREATE DATABASE IF NOT EXISTS firefly DEFAULT CHARSET utf8 COLLATE utf8_general_ci;
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
 DATABASES = {
@@ -93,14 +92,13 @@ DATABASES = {
     # }
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'abuui',
+        'NAME': 'firefly',
         'USER': 'root',
         'PASSWORD': 'root',
         'HOST': '127.0.0.1',
         'PORT': '3306',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -120,7 +118,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
@@ -134,7 +131,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/

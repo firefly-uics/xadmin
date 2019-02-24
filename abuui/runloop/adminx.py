@@ -30,7 +30,7 @@ class StockModelMultipleChoiceField(ModelMultipleChoiceField):
 
 @xadmin.sites.register(RunLoopGroup)
 class RunLoopGroupAdmin(object):
-    list_display = ("name", "start", "end", "status", "description")
+    list_display = ("name", "start", "end", "status", "description", 'link',)
     list_display_links = ("name",)
     # readony_fields = ("status", )
     exclude = ['status']
@@ -53,12 +53,21 @@ class RunLoopGroupAdmin(object):
 
     actions = [RunloopAction]
 
+    def link(self, instance):
+        if instance.status == 'done':
+            return "<a href='%s/k' target='_blank'>%s</a>" % (instance.id, '查看')
+        else:
+            return ""
+    link.short_description = "回测结果"
+    link.allow_tags = True
+    link.is_column = False
+
 
 @xadmin.sites.register(Orders)
 class OrdersAdmin(object):
     list_display = (
         "run_loop_group", "stock", "profit", "profit_cg_hunder", "buy_date", "buy_price", "buy_cnt", "buy_factor",
-        "sell_date", "sell_price", "sell_type_extra", "sell_type",)
+        "sell_date", "sell_price", "sell_type_extra", "sell_type")
     list_display_links = ("stock",)
     # readony_fields = ("status", )
     # exclude = ['status']

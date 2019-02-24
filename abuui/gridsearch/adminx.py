@@ -67,6 +67,7 @@ class RunGridSearchAdmin(object):
 
     reversion_enable = True
 
-    style_fields = {"factor_buys": "checkbox-inline", "factor_sells": "checkbox-inline"}
+    style_fields = {"factor_buys": "checkbox-inline", "factor_sells": "checkbox-inline",
+                    "stocks": "m2m_transfer"}
 
     actions = [GridSearchAction]

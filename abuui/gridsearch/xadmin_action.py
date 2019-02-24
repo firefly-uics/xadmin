@@ -35,7 +35,7 @@ class GridSearchAction(BaseActionView):
 
             sell_factors_product, buy_factors_product = self.gen_factor_params(obj, True)
 
-            grid_search = GridSearch(read_cash, choice_symbols, benchmark=benchmark,
+            grid_search = GridSearch(read_cash, choice_symbols,
                                      buy_factors_product=buy_factors_product,
                                      sell_factors_product=sell_factors_product)
 
